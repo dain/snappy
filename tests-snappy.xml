@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><testSuite xmlns="http://www.sun.com/japex/testSuite" name="Test suite for JVM compressors"><description>
+        <div xmlns:ns2="http://www.sun.com/japex/testSuite" xmlns="" xmlns:xi="http://www.w3.org/2001/XInclude"><p>
+                Micro-benchmark for testing performance of compressors on JVM platform
+            </p>
+        </div>
+    </description><driverGroup name="javaDrivers"><driver normal="false" name="Snappy(iq80)/block"><description>
+                <div xmlns:ns2="http://www.sun.com/japex/testSuite" xmlns="" xmlns:xi="http://www.w3.org/2001/XInclude"><p>Snappy-iq80, block mode</p>
+                </div>
+            </description><param value="build/classes" name="japex.classPath"/><param value="/Users/dain/.m2/repository/org/iq80/snappy/snappy/0.1-SNAPSHOT/snappy-0.1-SNAPSHOT.jar" name="japex.classPath"/><param value="com.ning.jcbm.iq80snappy.Iq80SnappyDriver" name="japex.driverClass"/></driver><driver normal="false" name="Snappy(JNI)/block"><description>
+                <div xmlns:ns2="http://www.sun.com/japex/testSuite" xmlns="" xmlns:xi="http://www.w3.org/2001/XInclude"><p>Snappy-java, block mode</p>
+                </div>
+            </description><param value="build/classes" name="japex.classPath"/><param value="lib/snappy/*.jar" name="japex.classPath"/><param value="com.ning.jcbm.snappy.SnappyDriver" name="japex.driverClass"/></driver><driver name="LZF/block"><description>
+                <div xmlns:ns2="http://www.sun.com/japex/testSuite" xmlns="" xmlns:xi="http://www.w3.org/2001/XInclude"><p>Test driver for LZF, block mode</p>
+                </div>
+            </description><param value="build/classes" name="japex.classPath"/><param value="lib/lzf/*.jar" name="japex.classPath"/><param value="com.ning.jcbm.lzf.LzfDriver" name="japex.driverClass"/></driver></driverGroup><testCase name="C:alice29.txt"/><testCase name="C:asyoulik.txt"/><testCase name="C:cp.html"/><testCase name="C:fields.c"/><testCase name="C:grammar.lsp"/><testCase name="C:kennedy.xls"/><testCase name="C:lcet10.txt"/><testCase name="C:plrabn12.txt"/><testCase name="C:ptt5"/><testCase name="C:sum"/><testCase name="C:xargs.1"/><testCase name="U:alice29.txt"/><testCase name="U:asyoulik.txt"/><testCase name="U:cp.html"/><testCase name="U:fields.c"/><testCase name="U:grammar.lsp"/><testCase name="U:kennedy.xls"/><testCase name="U:lcet10.txt"/><testCase name="U:plrabn12.txt"/><testCase name="U:ptt5"/><testCase name="U:sum"/><testCase name="U:xargs.1"/></testSuite>
