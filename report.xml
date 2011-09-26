@@ -8,7 +8,7 @@
         </div>
     </description>  <chartType>barchart</chartType>
   <configFile>tests-snappy.xml</configFile>
-  <dateTime>25 Sep 2011/23:10:10 PDT</dateTime>
+  <dateTime>26 Sep 2011/01:47:30 PDT</dateTime>
   <hostName>LazyBook</hostName>
   <inputDir>testdata/canterbury</inputDir>
   <numberOfCpus>8</numberOfCpus>
@@ -38,142 +38,142 @@
             </description>    <classPath>build/classes
 /Users/dain/.m2/repository/org/iq80/snappy/snappy/0.1-SNAPSHOT/snappy-0.1-SNAPSHOT.jar</classPath>
     <driverClass>com.ning.jcbm.iq80snappy.Iq80SnappyDriver</driverClass>
-    <resultAritMean>367.715</resultAritMean>
+    <resultAritMean>467.89</resultAritMean>
     <resultAritMeanX>50.82</resultAritMeanX>
-    <resultGeomMean>333.565</resultGeomMean>
+    <resultGeomMean>387.047</resultGeomMean>
     <resultGeomMeanX>48.41</resultGeomMeanX>
-    <resultHarmMean>297.579</resultHarmMean>
+    <resultHarmMean>317.503</resultHarmMean>
     <resultHarmMeanX>44.947</resultHarmMeanX>
     <testCase name="C:alice29.txt">
-      <resultIterations>67368</resultIterations>
-      <resultTime>59.974</resultTime>
-      <resultValue>162.924</resultValue>
+      <resultIterations>66351</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>160.454</resultValue>
       <resultValueX>59.81</resultValueX>
     </testCase>
     <testCase name="C:asyoulik.txt">
-      <resultIterations>77282</resultIterations>
-      <resultTime>59.974</resultTime>
-      <resultValue>153.833</resultValue>
+      <resultIterations>76107</resultIterations>
+      <resultTime>59.975</resultTime>
+      <resultValue>151.492</resultValue>
       <resultValueX>64.074</resultValueX>
     </testCase>
     <testCase name="C:cp.html">
-      <resultIterations>575922</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>225.295</resultValue>
+      <resultIterations>567072</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>221.835</resultValue>
       <resultValueX>48.116</resultValueX>
     </testCase>
     <testCase name="C:fields.c">
-      <resultIterations>1541725</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>273.33</resultValue>
+      <resultIterations>1513269</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>268.283</resultValue>
       <resultValueX>42.404</resultValueX>
     </testCase>
     <testCase name="C:grammar.lsp">
-      <resultIterations>4713125</resultIterations>
+      <resultIterations>4654325</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>278.849</resultValue>
+      <resultValue>275.369</resultValue>
       <resultValueX>48.374</resultValueX>
     </testCase>
     <testCase name="C:kennedy.xls">
-      <resultIterations>17247</resultIterations>
-      <resultTime>59.975</resultTime>
-      <resultValue>282.407</resultValue>
+      <resultIterations>16934</resultIterations>
+      <resultTime>59.976</resultTime>
+      <resultValue>277.274</resultValue>
       <resultValueX>41.344</resultValueX>
     </testCase>
     <testCase name="C:lcet10.txt">
-      <resultIterations>25078</resultIterations>
-      <resultTime>59.981</resultTime>
-      <resultValue>170.16</resultValue>
+      <resultIterations>24700</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>167.597</resultValue>
       <resultValueX>57.108</resultValueX>
     </testCase>
     <testCase name="C:plrabn12.txt">
-      <resultIterations>19045</resultIterations>
+      <resultIterations>18749</resultIterations>
       <resultTime>59.981</resultTime>
-      <resultValue>145.912</resultValue>
+      <resultValue>143.643</resultValue>
       <resultValueX>68.347</resultValueX>
     </testCase>
     <testCase name="C:ptt5">
-      <resultIterations>58651</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>478.604</resultValue>
+      <resultIterations>57930</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>472.709</resultValue>
       <resultValueX>18.21</resultValueX>
     </testCase>
     <testCase name="C:sum">
-      <resultIterations>344131</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>209.239</resultValue>
+      <resultIterations>339764</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>206.581</resultValue>
       <resultValueX>51.875</resultValueX>
     </testCase>
     <testCase name="C:xargs.1">
-      <resultIterations>3387970</resultIterations>
+      <resultIterations>3358697</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>227.707</resultValue>
+      <resultValue>225.737</resultValue>
       <resultValueX>59.357</resultValueX>
     </testCase>
     <testCase name="U:alice29.txt">
-      <resultIterations>228625</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>217497</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>525.957</resultValue>
       <resultValueX>59.81</resultValueX>
     </testCase>
     <testCase name="U:asyoulik.txt">
-      <resultIterations>260710</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>250570</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>498.725</resultValue>
       <resultValueX>64.074</resultValueX>
     </testCase>
     <testCase name="U:cp.html">
-      <resultIterations>2164325</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>2050203</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>802.018</resultValue>
       <resultValueX>48.116</resultValueX>
     </testCase>
     <testCase name="U:fields.c">
-      <resultIterations>4913822</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>4800486</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>851.053</resultValue>
       <resultValueX>42.404</resultValueX>
     </testCase>
     <testCase name="U:grammar.lsp">
-      <resultIterations>15186037</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>14771381</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>873.938</resultValue>
       <resultValueX>48.374</resultValueX>
     </testCase>
     <testCase name="U:kennedy.xls">
-      <resultIterations>41833</resultIterations>
+      <resultIterations>41016</resultIterations>
       <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>671.547</resultValue>
       <resultValueX>41.344</resultValueX>
     </testCase>
     <testCase name="U:lcet10.txt">
-      <resultIterations>85068</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>81477</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>552.852</resultValue>
       <resultValueX>57.108</resultValueX>
     </testCase>
     <testCase name="U:plrabn12.txt">
-      <resultIterations>62973</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>482.472</resultValue>
+      <resultIterations>60166</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>460.971</resultValue>
       <resultValueX>68.347</resultValueX>
     </testCase>
     <testCase name="U:ptt5">
-      <resultIterations>127178</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>126867</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>1035.256</resultValue>
       <resultValueX>18.21</resultValueX>
     </testCase>
     <testCase name="U:sum">
-      <resultIterations>1160575</resultIterations>
+      <resultIterations>1138345</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>692.133</resultValue>
       <resultValueX>51.875</resultValueX>
     </testCase>
     <testCase name="U:xargs.1">
-      <resultIterations>11566418</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>11280563</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>758.158</resultValue>
       <resultValueX>59.357</resultValueX>
     </testCase>
   </driver>
@@ -186,142 +186,142 @@
             </description>    <classPath>build/classes
 lib/snappy/*.jar</classPath>
     <driverClass>com.ning.jcbm.snappy.SnappyDriver</driverClass>
-    <resultAritMean>344.129</resultAritMean>
+    <resultAritMean>491.5</resultAritMean>
     <resultAritMeanX>50.82</resultAritMeanX>
-    <resultGeomMean>295.032</resultGeomMean>
+    <resultGeomMean>364.437</resultGeomMean>
     <resultGeomMeanX>48.41</resultGeomMeanX>
-    <resultHarmMean>245.596</resultHarmMean>
+    <resultHarmMean>264.541</resultHarmMean>
     <resultHarmMeanX>44.947</resultHarmMeanX>
     <testCase name="C:alice29.txt">
-      <resultIterations>49075</resultIterations>
+      <resultIterations>48476</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>118.674</resultValue>
+      <resultValue>117.226</resultValue>
       <resultValueX>59.81</resultValueX>
     </testCase>
     <testCase name="C:asyoulik.txt">
-      <resultIterations>57485</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>114.417</resultValue>
+      <resultIterations>56567</resultIterations>
+      <resultTime>59.977</resultTime>
+      <resultValue>112.592</resultValue>
       <resultValueX>64.074</resultValueX>
     </testCase>
     <testCase name="C:cp.html">
-      <resultIterations>424843</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>166.198</resultValue>
+      <resultIterations>418093</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>163.555</resultValue>
       <resultValueX>48.116</resultValueX>
     </testCase>
     <testCase name="C:fields.c">
-      <resultIterations>1031647</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>182.899</resultValue>
+      <resultIterations>1023264</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>181.413</resultValue>
       <resultValueX>42.404</resultValueX>
     </testCase>
     <testCase name="C:grammar.lsp">
-      <resultIterations>4158712</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>246.049</resultValue>
+      <resultIterations>4109404</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>243.134</resultValue>
       <resultValueX>48.374</resultValueX>
     </testCase>
     <testCase name="C:kennedy.xls">
-      <resultIterations>15753</resultIterations>
+      <resultIterations>15497</resultIterations>
       <resultTime>59.981</resultTime>
-      <resultValue>257.915</resultValue>
+      <resultValue>253.725</resultValue>
       <resultValueX>41.344</resultValueX>
     </testCase>
     <testCase name="C:lcet10.txt">
-      <resultIterations>18381</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>124.725</resultValue>
+      <resultIterations>18118</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>122.937</resultValue>
       <resultValueX>57.108</resultValueX>
     </testCase>
     <testCase name="C:plrabn12.txt">
-      <resultIterations>14270</resultIterations>
+      <resultIterations>14047</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>109.331</resultValue>
+      <resultValue>107.623</resultValue>
       <resultValueX>68.347</resultValueX>
     </testCase>
     <testCase name="C:ptt5">
-      <resultIterations>48368</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>394.695</resultValue>
+      <resultIterations>47897</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>390.855</resultValue>
       <resultValueX>18.21</resultValueX>
     </testCase>
     <testCase name="C:sum">
-      <resultIterations>268901</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>163.498</resultValue>
+      <resultIterations>264625</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>160.9</resultValue>
       <resultValueX>51.875</resultValueX>
     </testCase>
     <testCase name="C:xargs.1">
-      <resultIterations>2879460</resultIterations>
+      <resultIterations>2840858</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>193.53</resultValue>
+      <resultValue>190.937</resultValue>
       <resultValueX>59.357</resultValueX>
     </testCase>
     <testCase name="U:alice29.txt">
-      <resultIterations>257511</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>254282</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>614.924</resultValue>
       <resultValueX>59.81</resultValueX>
     </testCase>
     <testCase name="U:asyoulik.txt">
-      <resultIterations>296907</resultIterations>
+      <resultIterations>293033</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>583.245</resultValue>
       <resultValueX>64.074</resultValueX>
     </testCase>
     <testCase name="U:cp.html">
-      <resultIterations>2311034</resultIterations>
+      <resultIterations>2290475</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>896.024</resultValue>
       <resultValueX>48.116</resultValueX>
     </testCase>
     <testCase name="U:fields.c">
-      <resultIterations>5156764</resultIterations>
+      <resultIterations>5105414</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>905.131</resultValue>
       <resultValueX>42.404</resultValueX>
     </testCase>
     <testCase name="U:grammar.lsp">
-      <resultIterations>15955795</resultIterations>
+      <resultIterations>15721948</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>930.193</resultValue>
       <resultValueX>48.374</resultValueX>
     </testCase>
     <testCase name="U:kennedy.xls">
-      <resultIterations>46465</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>45818</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>750.183</resultValue>
       <resultValueX>41.344</resultValueX>
     </testCase>
     <testCase name="U:lcet10.txt">
-      <resultIterations>96730</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>95415</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>647.436</resultValue>
       <resultValueX>57.108</resultValueX>
     </testCase>
     <testCase name="U:plrabn12.txt">
-      <resultIterations>71633</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>70708</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>541.742</resultValue>
       <resultValueX>68.347</resultValueX>
     </testCase>
     <testCase name="U:ptt5">
-      <resultIterations>161451</resultIterations>
+      <resultIterations>159565</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>1302.101</resultValue>
       <resultValueX>18.21</resultValueX>
     </testCase>
     <testCase name="U:sum">
-      <resultIterations>1307239</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>1292468</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>785.853</resultValue>
       <resultValueX>51.875</resultValueX>
     </testCase>
     <testCase name="U:xargs.1">
-      <resultIterations>12241116</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>12070472</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>811.265</resultValue>
       <resultValueX>59.357</resultValueX>
     </testCase>
   </driver>
@@ -334,142 +334,142 @@ lib/snappy/*.jar</classPath>
             </description>    <classPath>build/classes
 lib/lzf/*.jar</classPath>
     <driverClass>com.ning.jcbm.lzf.LzfDriver</driverClass>
-    <resultAritMean>296.035</resultAritMean>
+    <resultAritMean>298.972</resultAritMean>
     <resultAritMeanX>49.284</resultAritMeanX>
-    <resultGeomMean>267.427</resultGeomMean>
+    <resultGeomMean>267.725</resultGeomMean>
     <resultGeomMeanX>46.876</resultGeomMeanX>
-    <resultHarmMean>239.789</resultHarmMean>
+    <resultHarmMean>238.406</resultHarmMean>
     <resultHarmMeanX>43.104</resultHarmMeanX>
     <testCase name="C:alice29.txt">
-      <resultIterations>55347</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>133.843</resultValue>
+      <resultIterations>54183</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>131.028</resultValue>
       <resultValueX>56.217</resultValueX>
     </testCase>
     <testCase name="C:asyoulik.txt">
-      <resultIterations>65498</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>130.366</resultValue>
+      <resultIterations>64719</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>128.816</resultValue>
       <resultValueX>59.172</resultValueX>
     </testCase>
     <testCase name="C:cp.html">
-      <resultIterations>431754</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>168.899</resultValue>
+      <resultIterations>421456</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>164.872</resultValue>
       <resultValueX>48.632</resultValueX>
     </testCase>
     <testCase name="C:fields.c">
-      <resultIterations>1260576</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>223.484</resultValue>
+      <resultIterations>1240742</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>219.969</resultValue>
       <resultValueX>42.448</resultValueX>
     </testCase>
     <testCase name="C:grammar.lsp">
-      <resultIterations>4950721</resultIterations>
+      <resultIterations>4642426</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>292.91</resultValue>
+      <resultValue>274.669</resultValue>
       <resultValueX>47.89</resultValueX>
     </testCase>
     <testCase name="C:kennedy.xls">
-      <resultIterations>16824</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>275.465</resultValue>
+      <resultIterations>16532</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>270.681</resultValue>
       <resultValueX>40.738</resultValueX>
     </testCase>
     <testCase name="C:lcet10.txt">
-      <resultIterations>20043</resultIterations>
+      <resultIterations>19822</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>136.001</resultValue>
+      <resultValue>134.502</resultValue>
       <resultValueX>54.464</resultValueX>
     </testCase>
     <testCase name="C:plrabn12.txt">
-      <resultIterations>16385</resultIterations>
+      <resultIterations>16146</resultIterations>
       <resultTime>59.98</resultTime>
-      <resultValue>125.534</resultValue>
+      <resultValue>123.704</resultValue>
       <resultValueX>62.431</resultValueX>
     </testCase>
     <testCase name="C:ptt5">
-      <resultIterations>42846</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>349.631</resultValue>
+      <resultIterations>41952</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>342.34</resultValue>
       <resultValueX>16.283</resultValueX>
     </testCase>
     <testCase name="C:sum">
-      <resultIterations>249544</resultIterations>
+      <resultIterations>249016</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>151.731</resultValue>
+      <resultValue>151.409</resultValue>
       <resultValueX>55.267</resultValueX>
     </testCase>
     <testCase name="C:xargs.1">
-      <resultIterations>3502390</resultIterations>
+      <resultIterations>3572043</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>235.398</resultValue>
+      <resultValue>240.081</resultValue>
       <resultValueX>58.576</resultValueX>
     </testCase>
     <testCase name="U:alice29.txt">
-      <resultIterations>116456</resultIterations>
+      <resultIterations>116140</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>281.623</resultValue>
+      <resultValue>280.858</resultValue>
       <resultValueX>56.217</resultValueX>
     </testCase>
     <testCase name="U:asyoulik.txt">
-      <resultIterations>138678</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>276.022</resultValue>
+      <resultIterations>138778</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>276.221</resultValue>
       <resultValueX>59.172</resultValueX>
     </testCase>
     <testCase name="U:cp.html">
-      <resultIterations>1056759</resultIterations>
+      <resultIterations>1056501</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>413.4</resultValue>
+      <resultValue>413.301</resultValue>
       <resultValueX>48.632</resultValueX>
     </testCase>
     <testCase name="U:fields.c">
-      <resultIterations>2942748</resultIterations>
+      <resultIterations>2926586</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultValue>518.85</resultValue>
       <resultValueX>42.448</resultValueX>
     </testCase>
     <testCase name="U:grammar.lsp">
-      <resultIterations>8765945</resultIterations>
-      <resultTime>59.977</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>8674749</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>513.246</resultValue>
       <resultValueX>47.89</resultValueX>
     </testCase>
     <testCase name="U:kennedy.xls">
-      <resultIterations>31885</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>31554</resultIterations>
+      <resultTime>59.98</resultTime>
+      <resultValue>516.631</resultValue>
       <resultValueX>40.738</resultValueX>
     </testCase>
     <testCase name="U:lcet10.txt">
-      <resultIterations>42382</resultIterations>
-      <resultTime>59.98</resultTime>
-      <resultValue>287.577</resultValue>
+      <resultIterations>42402</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>287.715</resultValue>
       <resultValueX>54.464</resultValueX>
     </testCase>
     <testCase name="U:plrabn12.txt">
-      <resultIterations>34770</resultIterations>
+      <resultIterations>34874</resultIterations>
       <resultTime>59.979</resultTime>
-      <resultValue>266.396</resultValue>
+      <resultValue>267.194</resultValue>
       <resultValueX>62.431</resultValueX>
     </testCase>
     <testCase name="U:ptt5">
-      <resultIterations>69575</resultIterations>
-      <resultTime>59.978</resultTime>
-      <resultValue>499.9</resultValue>
+      <resultIterations>68172</resultIterations>
+      <resultTime>59.979</resultTime>
+      <resultValue>556.301</resultValue>
       <resultValueX>16.283</resultValueX>
     </testCase>
     <testCase name="U:sum">
-      <resultIterations>545852</resultIterations>
-      <resultTime>59.979</resultTime>
-      <resultValue>331.892</resultValue>
+      <resultIterations>555695</resultIterations>
+      <resultTime>59.978</resultTime>
+      <resultValue>337.88</resultValue>
       <resultValueX>55.267</resultValueX>
     </testCase>
     <testCase name="U:xargs.1">
-      <resultIterations>6442285</resultIterations>
+      <resultIterations>6355048</resultIterations>
       <resultTime>59.978</resultTime>
-      <resultValue>432.994</resultValue>
+      <resultValue>427.128</resultValue>
       <resultValueX>58.576</resultValueX>
     </testCase>
   </driver>
