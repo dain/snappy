@@ -60,6 +60,15 @@ public final class Snappy
                 compressedOffset);
     }
 
+
+    public byte[] compress( byte[] data) {
+        byte[] compressedOut = new byte[maxCompressedLength(data.length)];
+        int compressedSize = compress(data, 0, data.length, compressedOut, 0);
+        byte[] trimmedBuffer = new byte[compressedSize];
+        System.arraycopy(compressedOut, 0, trimmedBuffer, 0, compressedSize);
+        return trimmedBuffer;
+    }
+
     static final int LITERAL = 0;
     static final int COPY_1_BYTE_OFFSET = 1;  // 3 bit length + 3 bits of offset in opcode
     static final int COPY_2_BYTE_OFFSET = 2;
