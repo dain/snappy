@@ -20,10 +20,6 @@ package org.iq80.snappy;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.iq80.snappy.Crc32C.maskedCrc32c;
-import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
-import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
-
 /**
  * This class implements an output stream for writing Snappy compressed data.
  * The output format is the stream header "snappy\0" followed by one or more
@@ -41,23 +37,30 @@ import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
  * <p/>
  * An uncompressed block is simply copied from the input, thus guaranteeing
  * that the output is never larger than the input (not including the header).
+ * <p>
+ * <b>NOTE:</b>This data produced by this class is not compatible with the
+ * {@code x-snappy-framed} specification. It can only be read by
+ * {@link SnappyInputStream}.
+ * </p>
+ *
+ * @deprecated Use {@link SnappyFramedOutputStream} which implements
+ * the standard {@code x-snappy-framed} specification.
  */
+@Deprecated
 public class SnappyOutputStream
-        extends OutputStream
+        extends AbstractSnappyOutputStream
 {
-    static final byte[] STREAM_HEADER = new byte[] { 's', 'n', 'a', 'p', 'p', 'y', 0};
+    static final byte[] STREAM_HEADER = new byte[] {'s', 'n', 'a', 'p', 'p', 'y', 0};
 
     // the header format requires the max block size to fit in 15 bits -- do not change!
     static final int MAX_BLOCK_SIZE = 1 << 15;
 
-    private final BufferRecycler recycler;
-    private final byte[] buffer;
-    private final byte[] outputBuffer;
-    private final OutputStream out;
-    private final boolean writeChecksums;
+    /**
+     * Write out the uncompressed content if the compression ratio (compressed length / raw length) exceeds this value.
+     */
+    public static final double MIN_COMPRESSION_RATIO = 7.0 / 8.0;
 
-    private int position;
-    private boolean closed;
+    private final boolean calculateChecksum;
 
     /**
      * Creates a Snappy output stream to write data to the specified underlying output stream.
@@ -68,6 +71,13 @@ public class SnappyOutputStream
             throws IOException
     {
         this(out, true);
+    }
+
+    private SnappyOutputStream(OutputStream out, boolean calculateChecksum)
+            throws IOException
+    {
+        super(out, MAX_BLOCK_SIZE, MIN_COMPRESSION_RATIO);
+        this.calculateChecksum = calculateChecksum;
     }
 
     /**
@@ -82,129 +92,21 @@ public class SnappyOutputStream
         return new SnappyOutputStream(out, false);
     }
 
-    private SnappyOutputStream(OutputStream out, boolean writeChecksums)
+    @Override
+    protected void writeHeader(OutputStream out)
             throws IOException
     {
-        this.out = checkNotNull(out, "out is null");
-        this.writeChecksums = writeChecksums;
-        recycler = BufferRecycler.instance();
-        buffer = recycler.allocOutputBuffer(MAX_BLOCK_SIZE);
-        outputBuffer = recycler.allocEncodingBuffer(Snappy.maxCompressedLength(MAX_BLOCK_SIZE));
         out.write(STREAM_HEADER);
     }
 
     @Override
-    public void write(int b)
-            throws IOException
+    protected int calculateCRC32C(byte[] data, int offset, int length)
     {
-        if (closed) {
-            throw new IOException("Stream is closed") ;
-        }
-        if (position >= MAX_BLOCK_SIZE) {
-            flushBuffer();
-        }
-        buffer[position++] = (byte) b;
+        return calculateChecksum ? super.calculateCRC32C(data, offset, length) : 0;
     }
 
     @Override
-    public void write(byte[] input, int offset, int length)
-            throws IOException
-    {
-        checkNotNull(input, "input is null");
-        checkPositionIndexes(offset, offset + length, input.length);
-        if (closed) {
-            throw new IOException("Stream is closed") ;
-        }
-
-        int free = MAX_BLOCK_SIZE - position;
-
-        // easy case: enough free space in buffer for entire input
-        if (free >= length) {
-            copyToBuffer(input, offset, length);
-            return;
-        }
-
-        // fill partial buffer as much as possible and flush
-        if (position > 0) {
-            copyToBuffer(input, offset, free);
-            flushBuffer();
-            offset += free;
-            length -= free;
-        }
-
-        // write remaining full blocks directly from input array
-        while (length >= MAX_BLOCK_SIZE) {
-            writeCompressed(input, offset, MAX_BLOCK_SIZE);
-            offset += MAX_BLOCK_SIZE;
-            length -= MAX_BLOCK_SIZE;
-        }
-
-        // copy remaining partial block into now-empty buffer
-        copyToBuffer(input, offset, length);
-    }
-
-    @Override
-    public void flush()
-            throws IOException
-    {
-        if (closed) {
-            throw new IOException("Stream is closed") ;
-        }
-        flushBuffer();
-        out.flush();
-    }
-
-    @Override
-    public void close()
-            throws IOException
-    {
-        if (closed) {
-            return;
-        }
-        try {
-            flush();
-            out.close();
-        }
-        finally {
-            closed = true;
-            recycler.releaseOutputBuffer(outputBuffer);
-            recycler.releaseEncodeBuffer(buffer);
-        }
-    }
-
-    private void copyToBuffer(byte[] input, int offset, int length)
-    {
-        System.arraycopy(input, offset, buffer, position, length);
-        position += length;
-    }
-
-    private void flushBuffer()
-            throws IOException
-    {
-        if (position > 0) {
-            writeCompressed(buffer, 0, position);
-            position = 0;
-        }
-    }
-
-    private void writeCompressed(byte[] input, int offset, int length)
-            throws IOException
-    {
-        // crc is based on the user supplied input data
-        int crc32c = writeChecksums ? maskedCrc32c(input, offset, length) : 0;
-
-        int compressed = Snappy.compress(input, offset, length, outputBuffer, 0);
-
-        // use uncompressed input if less than 12.5% compression
-        if (compressed >= (length - (length / 8))) {
-            writeBlock(input, offset, length, false, crc32c);
-        }
-        else {
-            writeBlock(outputBuffer, 0, compressed, true, crc32c);
-        }
-    }
-
-    private void writeBlock(byte[] data, int offset, int length, boolean compressed, int crc32c)
+    protected void writeBlock(OutputStream out, byte[] data, int offset, int length, boolean compressed, int crc32c)
             throws IOException
     {
         // write compressed flag
