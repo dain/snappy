@@ -71,6 +71,15 @@ class BufferRecycler
         }
         return bufferRecycler;
     }
+    
+    void clear()
+    {
+        inputBuffer = null;
+        outputBuffer = null;
+        decodingBuffer = null;
+        encodingBuffer = null;
+        encodingHash = null;
+    }
 
     ///////////////////////////////////////////////////////////////////////
     // Buffers for encoding (output)
