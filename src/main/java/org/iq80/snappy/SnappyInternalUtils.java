@@ -17,6 +17,9 @@
  */
 package org.iq80.snappy;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 final class SnappyInternalUtils
 {
     private SnappyInternalUtils()
@@ -148,5 +151,72 @@ final class SnappyInternalUtils
         else { // index > size
             return String.format("%s (%s) must not be greater than size (%s)", desc, index, size);
         }
+    }
+    /**
+     * Reads <i>length</i> bytes from <i>source</i> into <i>dest</i> starting at <i>offset</i>. <br/>
+     * 
+     * The only case where the <i>length</i> <tt>byte</tt>s will not be read is if <i>source</i> returns EOF.
+     * @param source The source of bytes to read from. Must not be <code>null</code>.
+     * @param dest The <tt>byte[]</tt> to read bytes into. Must not be <code>null</code>.
+     * @param offset The index in <i>dest</i> to start filling.
+     * @param length The number of bytes to read.
+     * @return Total number of bytes actually read.
+     * @throws IOException
+     * @throws VerifyException If any of the arguments are invalid.
+     * @throws IndexOutOfBoundsException if <i>offset</i> or <i>length</i> are invalid.
+     */
+    static final int readBytes(InputStream source, byte[] dest, int offset, int length) throws IOException
+    {
+        // validate arguments
+        checkNotNull(source, "source is null");
+        checkNotNull(dest, "dest is null");
+                
+            // how many bytes were read.
+        int lastRead = source.read(dest, offset, length);
+
+        int totalRead = lastRead;
+
+        // if we did not read as many bytes as we had hoped, try reading again.
+        if (lastRead < length) {
+            // as long the buffer is not full (remaining() == 0) and we have not reached EOF (lastRead == -1) keep reading.
+            while (totalRead < length && lastRead != -1) {
+                lastRead = source.read(dest, offset + totalRead, length - totalRead);
+
+                // if we got EOF, do not add to total read.
+                if (lastRead != -1) {
+                    totalRead += lastRead;
+                }
+            }
+        }
+
+    
+        return totalRead;
+    }
+    
+    static int skip(InputStream source, int skip) throws IOException
+    {
+        // optimization also avoids potential for error with some implementation of
+        // InputStream.skip() which throw exceptions with negative numbers (ie. ZipInputStream).
+        if (skip <= 0) {
+            return 0;
+        }
+
+        int toSkip = skip - (int)source.skip(skip);
+
+        boolean more = true;
+        while (toSkip > 0 && more) {
+            // check to see if we reached EOF
+            int read = source.read();
+            if (read == -1) {
+                more = false;
+            } else {
+                --toSkip;
+                toSkip -= source.skip(toSkip);
+            }
+        }
+
+        final int skipped = skip - toSkip;
+
+        return skipped;
     }
 }
