@@ -17,6 +17,8 @@
  */
 package org.iq80.snappy;
 
+import java.nio.ByteOrder;
+
 final class SnappyInternalUtils
 {
     private SnappyInternalUtils()
@@ -28,14 +30,17 @@ final class SnappyInternalUtils
     static {
         // Try to only load one implementation of Memory to assure the call sites are monomorphic (fast)
         Memory memoryInstance = null;
-        try {
-            Class<? extends Memory> unsafeMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.UnsafeMemory").asSubclass(Memory.class);
-            Memory unsafeMemory = unsafeMemoryClass.newInstance();
-            if (unsafeMemory.loadInt(new byte[4], 0) == 0) {
-                memoryInstance = unsafeMemory;
+        // UnsafeMemory uses the endianness of the system, as is it only works on little endian systems.
+        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+            try {
+                Class<? extends Memory> unsafeMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.UnsafeMemory").asSubclass(Memory.class);
+                Memory unsafeMemory = unsafeMemoryClass.newInstance();
+                if (unsafeMemory.loadInt(new byte[4], 0) == 0) {
+                    memoryInstance = unsafeMemory;
+                }
             }
-        }
-        catch (Throwable ignored) {
+            catch (Throwable ignored) {
+            }
         }
         if (memoryInstance == null) {
             try {
