@@ -111,7 +111,8 @@ public final class Snappy
     }
 
 
-    public static byte[] compress( byte[] data) {
+    public static byte[] compress(byte[] data)
+    {
         byte[] compressedOut = new byte[maxCompressedLength(data.length)];
         int compressedSize = compress(data, 0, data.length, compressedOut, 0);
         byte[] trimmedBuffer = Arrays.copyOf(compressedOut, compressedSize);

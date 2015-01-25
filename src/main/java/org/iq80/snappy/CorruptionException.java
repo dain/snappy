@@ -17,7 +17,8 @@
  */
 package org.iq80.snappy;
 
-public class CorruptionException extends RuntimeException
+public class CorruptionException
+        extends RuntimeException
 {
     public CorruptionException()
     {

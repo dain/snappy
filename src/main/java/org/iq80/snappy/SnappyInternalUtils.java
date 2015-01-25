@@ -17,9 +17,9 @@
  */
 package org.iq80.snappy;
 
-import java.nio.ByteOrder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteOrder;
 
 final class SnappyInternalUtils
 {
@@ -57,7 +57,8 @@ final class SnappyInternalUtils
                 Memory slowMemory = slowMemoryClass.newInstance();
                 if (slowMemory.loadInt(new byte[4], 0) == 0) {
                     memoryInstance = slowMemory;
-                } else {
+                }
+                else {
                     throw new AssertionError("SlowMemory class is broken!");
                 }
             }

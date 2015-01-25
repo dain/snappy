@@ -53,8 +53,7 @@ public final class SnappyFramedOutputStream
             throws IOException
     {
         super(out, blockSize, minCompressionRatio);
-        checkArgument(blockSize > 0 && blockSize <= MAX_BLOCK_SIZE,
-                "blockSize must be in (0, 65536]", blockSize);
+        checkArgument(blockSize > 0 && blockSize <= MAX_BLOCK_SIZE, "blockSize must be in (0, 65536]", blockSize);
     }
 
     @Override

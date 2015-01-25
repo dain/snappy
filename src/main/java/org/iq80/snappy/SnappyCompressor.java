@@ -215,7 +215,7 @@ final class SnappyCompressor
                 break;
             }
         }
-        return new int[]{ipIndex, candidateIndex, skip};
+        return new int[] {ipIndex, candidateIndex, skip};
     }
 
     private static int bytesBetweenHashLookups(int skip)
@@ -256,7 +256,7 @@ final class SnappyCompressor
 
             // are we done?
             if (ipIndex >= inputOffset + inputSize - INPUT_MARGIN_BYTES) {
-                return new int[]{ipIndex, outputIndex};
+                return new int[] {ipIndex, outputIndex};
             }
 
             // We could immediately start working at ip now, but to improve
@@ -283,7 +283,7 @@ final class SnappyCompressor
             table[curHash] = (short) (ipIndex - inputOffset);
 
         } while (inputBytes == SnappyInternalUtils.loadInt(input, candidateIndex));
-        return new int[]{ipIndex, outputIndex};
+        return new int[] {ipIndex, outputIndex};
     }
 
     private static int emitLiteral(

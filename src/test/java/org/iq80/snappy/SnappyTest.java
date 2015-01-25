@@ -34,7 +34,7 @@ public class SnappyTest
     public void testByteForByteOutputSyntheticData()
             throws Exception
     {
-        for (int i = 1; i < 65 * 1024; i ++) {
+        for (int i = 1; i < 65 * 1024; i++) {
             try {
                 verifyCompression(i);
             }
@@ -69,7 +69,7 @@ public class SnappyTest
         verifyCompression(input, position, size);
     }
 
-    private void verifyCompression(byte[] input, int position, int size)
+    private static void verifyCompression(byte[] input, int position, int size)
             throws Exception
     {
         byte[] nativeCompressed = new byte[org.xerial.snappy.Snappy.maxCompressedLength(size)];
@@ -110,7 +110,7 @@ public class SnappyTest
         Snappy.uncompress(javaCompressed, 0, javaCompressedSize, uncompressed, 0);
 
         if (!SnappyInternalUtils.equals(uncompressed, 0, input, position, size)) {
-            Assert.fail("Invalid uncompressed output for input size " + size + " at offset "+ position);
+            Assert.fail("Invalid uncompressed output for input size " + size + " at offset " + position);
         }
     }
 
@@ -153,7 +153,7 @@ public class SnappyTest
 
             // Duplicate the random data until we have filled "length" bytes
             byte[] dest = new byte[length];
-            for (int i = 0; i < length;) {
+            for (int i = 0; i < length; ) {
                 int chunkLength = Math.min(rawData.length, length - i);
                 System.arraycopy(rawData, 0, dest, i, chunkLength);
                 i += chunkLength;
