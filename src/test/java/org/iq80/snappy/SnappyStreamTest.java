@@ -17,10 +17,8 @@
  */
 package org.iq80.snappy;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static com.google.common.primitives.UnsignedBytes.toInt;
-import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
-import static org.testng.Assert.assertEquals;
+import com.google.common.base.Charsets;
+import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -30,35 +28,28 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.testng.annotations.Test;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static com.google.common.primitives.UnsignedBytes.toInt;
+import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
+import static org.testng.Assert.assertEquals;
 
-import com.google.common.base.Charsets;
-
-public class SnappyStreamTest extends AbstractSnappyStreamTest
+public class SnappyStreamTest
+        extends AbstractSnappyStreamTest
 {
-    /**
-     * {@inheritDoc}
-     * @throws IOException 
-     */
     @Override
-    protected OutputStream createOutputStream(OutputStream target) throws IOException
+    protected OutputStream createOutputStream(OutputStream target)
+            throws IOException
     {
         return new SnappyOutputStream(target);
     }
 
-    /**
-     * {@inheritDoc}
-     * @throws IOException 
-     */
     @Override
-    protected InputStream createInputStream(InputStream source, boolean verifyCheckSums) throws IOException
+    protected InputStream createInputStream(InputStream source, boolean verifyCheckSums)
+            throws IOException
     {
         return new SnappyInputStream(source, verifyCheckSums);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected byte[] getMarkerFrame()
     {
@@ -112,46 +103,47 @@ public class SnappyStreamTest extends AbstractSnappyStreamTest
         assertEquals(compress(empty), STREAM_HEADER);
         assertEquals(uncompress(STREAM_HEADER), empty);
     }
+
     @Test(expectedExceptions = EOFException.class, expectedExceptionsMessageRegExp = ".*block header.*")
     public void testShortBlockHeader()
             throws Exception
     {
-        uncompressBlock(new byte[]{0});
+        uncompressBlock(new byte[] {0});
     }
 
     @Test(expectedExceptions = EOFException.class, expectedExceptionsMessageRegExp = ".*reading frame.*")
     public void testShortBlockData()
             throws Exception
     {
-        uncompressBlock(new byte[]{0, 0, 4, 0, 0, 0, 0, 'x', 'x'}); // flag = 0, size = 4, crc32c = 0, block data = [x, x]
+        uncompressBlock(new byte[] {0, 0, 4, 0, 0, 0, 0, 'x', 'x'}); // flag = 0, size = 4, crc32c = 0, block data = [x, x]
     }
 
     @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = "invalid compressed flag in header: 0x41")
     public void testInvalidBlockHeaderCompressedFlag()
             throws Exception
     {
-        uncompressBlock(new byte[]{'A', 0, 1, 0, 0, 0, 0, 0}); // flag = 'A', block size = 1, crc32c = 0
+        uncompressBlock(new byte[] {'A', 0, 1, 0, 0, 0, 0, 0}); // flag = 'A', block size = 1, crc32c = 0
     }
 
     @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = "invalid block size in header: 0")
     public void testInvalidBlockSizeZero()
             throws Exception
     {
-        uncompressBlock(new byte[]{0, 0, 0, 0, 0, 0, 0}); // flag = '0', block size = 0, crc32c = 0
+        uncompressBlock(new byte[] {0, 0, 0, 0, 0, 0, 0}); // flag = '0', block size = 0, crc32c = 0
     }
 
     @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = "invalid block size in header: 55555")
     public void testInvalidBlockSizeLarge()
             throws Exception
     {
-        uncompressBlock(new byte[]{0, (byte) 0xD9, 0x03, 0, 0, 0, 0}); // flag = 0, block size = 55555, crc32c = 0
+        uncompressBlock(new byte[] {0, (byte) 0xD9, 0x03, 0, 0, 0, 0}); // flag = 0, block size = 55555, crc32c = 0
     }
 
     @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = "Corrupt input: invalid checksum")
     public void testInvalidChecksum()
             throws Exception
     {
-        uncompressBlock(new byte[]{0, 0, 1, 0, 0, 0, 0, 'a'}); // flag = 0, size = 4, crc32c = 0, block data = [a]
+        uncompressBlock(new byte[] {0, 0, 1, 0, 0, 0, 0, 'a'}); // flag = 0, size = 4, crc32c = 0, block data = [a]
     }
 
     @Test
@@ -168,7 +160,7 @@ public class SnappyStreamTest extends AbstractSnappyStreamTest
     {
         return uncompress(blockToStream(block));
     }
-    
+
     private static byte[] blockToStream(byte[] block)
     {
         byte[] stream = new byte[STREAM_HEADER.length + block.length];

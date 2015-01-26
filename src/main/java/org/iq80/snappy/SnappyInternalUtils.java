@@ -19,6 +19,7 @@ package org.iq80.snappy;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteOrder;
 
 final class SnappyInternalUtils
 {
@@ -31,14 +32,24 @@ final class SnappyInternalUtils
     static {
         // Try to only load one implementation of Memory to assure the call sites are monomorphic (fast)
         Memory memoryInstance = null;
-        try {
-            Class<? extends Memory> unsafeMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.UnsafeMemory").asSubclass(Memory.class);
-            Memory unsafeMemory = unsafeMemoryClass.newInstance();
-            if (unsafeMemory.loadInt(new byte[4], 0) == 0) {
-                memoryInstance = unsafeMemory;
+
+        // TODO enable UnsafeMemory on big endian machines
+        //
+        // The current UnsafeMemory code assumes the machine is little endian, and will
+        // not work correctly on big endian CPUs.  For now, we will disable UnsafeMemory on
+        // big endian machines.  This will make the code significantly slower on big endian.
+        // In the future someone should add the necessary flip bytes calls to make this
+        // work efficiently on big endian machines.
+        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+            try {
+                Class<? extends Memory> unsafeMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.UnsafeMemory").asSubclass(Memory.class);
+                Memory unsafeMemory = unsafeMemoryClass.newInstance();
+                if (unsafeMemory.loadInt(new byte[4], 0) == 0) {
+                    memoryInstance = unsafeMemory;
+                }
             }
-        }
-        catch (Throwable ignored) {
+            catch (Throwable ignored) {
+            }
         }
         if (memoryInstance == null) {
             try {
@@ -46,7 +57,8 @@ final class SnappyInternalUtils
                 Memory slowMemory = slowMemoryClass.newInstance();
                 if (slowMemory.loadInt(new byte[4], 0) == 0) {
                     memoryInstance = slowMemory;
-                } else {
+                }
+                else {
                     throw new AssertionError("SlowMemory class is broken!");
                 }
             }
@@ -152,26 +164,26 @@ final class SnappyInternalUtils
             return String.format("%s (%s) must not be greater than size (%s)", desc, index, size);
         }
     }
+
     /**
      * Reads <i>length</i> bytes from <i>source</i> into <i>dest</i> starting at <i>offset</i>. <br/>
-     * 
+     * <p/>
      * The only case where the <i>length</i> <tt>byte</tt>s will not be read is if <i>source</i> returns EOF.
+     *
      * @param source The source of bytes to read from. Must not be <code>null</code>.
      * @param dest The <tt>byte[]</tt> to read bytes into. Must not be <code>null</code>.
      * @param offset The index in <i>dest</i> to start filling.
      * @param length The number of bytes to read.
      * @return Total number of bytes actually read.
-     * @throws IOException
-     * @throws VerifyException If any of the arguments are invalid.
      * @throws IndexOutOfBoundsException if <i>offset</i> or <i>length</i> are invalid.
      */
-    static final int readBytes(InputStream source, byte[] dest, int offset, int length) throws IOException
+    static int readBytes(InputStream source, byte[] dest, int offset, int length)
+            throws IOException
     {
-        // validate arguments
         checkNotNull(source, "source is null");
         checkNotNull(dest, "dest is null");
-                
-            // how many bytes were read.
+
+        // how many bytes were read.
         int lastRead = source.read(dest, offset, length);
 
         int totalRead = lastRead;
@@ -189,11 +201,11 @@ final class SnappyInternalUtils
             }
         }
 
-    
         return totalRead;
     }
-    
-    static int skip(InputStream source, int skip) throws IOException
+
+    static int skip(InputStream source, int skip)
+            throws IOException
     {
         // optimization also avoids potential for error with some implementation of
         // InputStream.skip() which throw exceptions with negative numbers (ie. ZipInputStream).
@@ -201,7 +213,7 @@ final class SnappyInternalUtils
             return 0;
         }
 
-        int toSkip = skip - (int)source.skip(skip);
+        int toSkip = skip - (int) source.skip(skip);
 
         boolean more = true;
         while (toSkip > 0 && more) {
@@ -209,13 +221,14 @@ final class SnappyInternalUtils
             int read = source.read();
             if (read == -1) {
                 more = false;
-            } else {
+            }
+            else {
                 --toSkip;
                 toSkip -= source.skip(toSkip);
             }
         }
 
-        final int skipped = skip - toSkip;
+        int skipped = skip - toSkip;
 
         return skipped;
     }

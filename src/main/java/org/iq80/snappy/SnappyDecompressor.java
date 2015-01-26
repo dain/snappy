@@ -289,7 +289,7 @@ final class SnappyDecompressor
             copyLong(input, ipIndex, output, opIndex);
             copyLong(input, ipIndex + 8, output, opIndex + 8);
         }
-        else  {
+        else {
             int fastLength = length & 0xFFFFFFF8;
             if (fastLength <= 64) {
                 // copy long-by-long
@@ -319,7 +319,7 @@ final class SnappyDecompressor
      * src    == "ab"
      * op     == src + 2
      * len    == 20
-     *
+     * <p/>
      * After incrementalCopy, the result will have
      * eleven copies of "ab"
      * ababababababababababab
@@ -347,7 +347,7 @@ final class SnappyDecompressor
     }
 
     // Mapping from i in range [0,4] to a mask to extract the bottom 8*i bits
-    private static final int[] wordmask = new int[]{
+    private static final int[] wordmask = new int[] {
             0, 0xff, 0xffff, 0xffffff, 0xffffffff
     };
 
@@ -362,7 +362,7 @@ final class SnappyDecompressor
     // because of efficiency reasons:
     //      (1) Extracting a byte is faster than a bit-field
     //      (2) It properly aligns copy offset so we do not need a <<8
-    private static final short[] opLookupTable = new short[]{
+    private static final short[] opLookupTable = new short[] {
             0x0001, 0x0804, 0x1001, 0x2001, 0x0002, 0x0805, 0x1002, 0x2002,
             0x0003, 0x0806, 0x1003, 0x2003, 0x0004, 0x0807, 0x1004, 0x2004,
             0x0005, 0x0808, 0x1005, 0x2005, 0x0006, 0x0809, 0x1006, 0x2006,
@@ -429,6 +429,6 @@ final class SnappyDecompressor
                 }
             }
         }
-        return new int[]{result, bytesRead};
+        return new int[] {result, bytesRead};
     }
 }

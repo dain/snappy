@@ -22,7 +22,8 @@ import com.google.common.base.Preconditions;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-final public class ByteArrayOutputStream extends OutputStream
+public final class ByteArrayOutputStream
+        extends OutputStream
 {
 
     private final byte buffer[];
@@ -38,12 +39,14 @@ final public class ByteArrayOutputStream extends OutputStream
         this.buffer = buffer;
     }
 
+    @Override
     public void write(int b)
     {
         Preconditions.checkPositionIndex(size + 1, buffer.length);
         buffer[size++] = (byte) b;
     }
 
+    @Override
     public void write(byte b[], int off, int len)
     {
         Preconditions.checkPositionIndex(size + len, buffer.length);

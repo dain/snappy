@@ -169,7 +169,7 @@ public class SnappyBench
     {
         System.err.println();
         System.err.println();
-        System.err.println("### " +benchmarkTitle);
+        System.err.println("### " + benchmarkTitle);
         System.err.println("<pre><code>");
         System.err.printf("%-8s %8s %9s %9s %11s %11s %7s\n",
                 "",
@@ -372,15 +372,16 @@ public class SnappyBench
         return humanReadableSpeed;
     }
 
-    private long getMedianValue(long[] benchmarkRuns)
+    private static long getMedianValue(long[] benchmarkRuns)
     {
         ArrayList<Long> list = new ArrayList<Long>(Longs.asList(benchmarkRuns));
         Collections.sort(list);
         return list.get(benchmarkRuns.length / 2);
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
-    public enum TestData {
+    @SuppressWarnings("UnusedDeclaration")
+    public enum TestData
+    {
         html("html"),
         urls("urls.10K"),
         jpg("house.jpg", false),
@@ -449,7 +450,8 @@ public class SnappyBench
         {
             if (compressibleData) {
                 return name();
-            } else {
+            }
+            else {
                 return name() + " (not compressible)";
             }
         }

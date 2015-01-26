@@ -28,18 +28,16 @@ import java.lang.ref.SoftReference;
  */
 class BufferRecycler
 {
-    private final static int MIN_ENCODING_BUFFER = 4000;
+    private static final int MIN_ENCODING_BUFFER = 4000;
 
-    private final static int MIN_OUTPUT_BUFFER = 8000;
+    private static final int MIN_OUTPUT_BUFFER = 8000;
 
     /**
      * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftReference}
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling for buffers we need for encoding, decoding.
      */
-    final protected static ThreadLocal<SoftReference<BufferRecycler>> recyclerRef
-            = new ThreadLocal<SoftReference<BufferRecycler>>();
-
+    protected static final ThreadLocal<SoftReference<BufferRecycler>> recyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
 
     private byte[] inputBuffer;
     private byte[] outputBuffer;
@@ -48,7 +46,6 @@ class BufferRecycler
     private byte[] encodingBuffer;
 
     private short[] encodingHash;
-
 
     /**
      * Accessor to get thread-local recycler instance
@@ -71,8 +68,8 @@ class BufferRecycler
         }
         return bufferRecycler;
     }
-    
-    void clear()
+
+    public void clear()
     {
         inputBuffer = null;
         outputBuffer = null;

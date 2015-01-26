@@ -42,23 +42,24 @@ import java.io.OutputStream;
  * {@code x-snappy-framed} specification. It can only be read by
  * {@link SnappyInputStream}.
  * </p>
- * @deprecated Prefer the use of {@link SnappyFramedOutputStream} which implements 
+ *
+ * @deprecated Use {@link SnappyFramedOutputStream} which implements
  * the standard {@code x-snappy-framed} specification.
  */
 @Deprecated
 public class SnappyOutputStream
         extends AbstractSnappyOutputStream
 {
-    static final byte[] STREAM_HEADER = new byte[] { 's', 'n', 'a', 'p', 'p', 'y', 0};
+    static final byte[] STREAM_HEADER = new byte[] {'s', 'n', 'a', 'p', 'p', 'y', 0};
 
     // the header format requires the max block size to fit in 15 bits -- do not change!
     static final int MAX_BLOCK_SIZE = 1 << 15;
-    
+
     /**
      * Write out the uncompressed content if the compression ratio (compressed length / raw length) exceeds this value.
      */
-    public static final double MIN_COMPRESSION_RATIO = 7.0/8.0;
-    
+    public static final double MIN_COMPRESSION_RATIO = 7.0 / 8.0;
+
     private final boolean calculateChecksum;
 
     /**
@@ -69,9 +70,9 @@ public class SnappyOutputStream
     public SnappyOutputStream(OutputStream out)
             throws IOException
     {
-        this (out, true);
+        this(out, true);
     }
-    
+
     private SnappyOutputStream(OutputStream out, boolean calculateChecksum)
             throws IOException
     {
@@ -91,26 +92,23 @@ public class SnappyOutputStream
         return new SnappyOutputStream(out, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void writeHeader(OutputStream out)
-            throws IOException {
+            throws IOException
+    {
         out.write(STREAM_HEADER);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected int calculateCRC32C(byte[] data, int offset, int length) {
+    protected int calculateCRC32C(byte[] data, int offset, int length)
+    {
         return calculateChecksum ? super.calculateCRC32C(data, offset, length) : 0;
     }
 
     @Override
-    protected void writeBlock(OutputStream out, byte[] data, int offset,
-            int length, boolean compressed, int crc32c) throws IOException {
+    protected void writeBlock(OutputStream out, byte[] data, int offset, int length, boolean compressed, int crc32c)
+            throws IOException
+    {
         // write compressed flag
         out.write(compressed ? 0x01 : 0x00);
 

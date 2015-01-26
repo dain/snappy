@@ -1,11 +1,24 @@
 /*
- * Created: Mar 14, 2013
+ * Copyright (C) 2011 the original author or authors.
+ * See the notice.md file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.iq80.snappy;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import com.google.common.io.Files;
+import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,24 +29,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import org.testng.annotations.Test;
-
-import com.google.common.io.Files;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Common base class for testing streaming implementations.
- * 
- * @author Brett Okken
  */
-public abstract class AbstractSnappyStreamTest {
+public abstract class AbstractSnappyStreamTest
+{
     protected abstract OutputStream createOutputStream(OutputStream target)
             throws IOException;
 
-    protected abstract InputStream createInputStream(InputStream source,
-            boolean verifyCheckSums) throws IOException;
+    protected abstract InputStream createInputStream(InputStream source, boolean verifyCheckSums)
+            throws IOException;
 
     @Test
-    public void testLargeWrites() throws Exception {
+    public void testLargeWrites()
+            throws Exception
+    {
         byte[] random = getRandom(0.5, 500000);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -68,7 +82,9 @@ public abstract class AbstractSnappyStreamTest {
     }
 
     @Test
-    public void testSingleByteWrites() throws Exception {
+    public void testSingleByteWrites()
+            throws Exception
+    {
         byte[] random = getRandom(0.5, 500000);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -87,7 +103,9 @@ public abstract class AbstractSnappyStreamTest {
     }
 
     @Test
-    public void testExtraFlushes() throws Exception {
+    public void testExtraFlushes()
+            throws Exception
+    {
         byte[] random = getRandom(0.5, 500000);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -108,7 +126,9 @@ public abstract class AbstractSnappyStreamTest {
     }
 
     @Test
-    public void testUncompressableRange() throws Exception {
+    public void testUncompressibleRange()
+            throws Exception
+    {
         int max = 128 * 1024;
         byte[] random = getRandom(1, max);
 
@@ -124,7 +144,9 @@ public abstract class AbstractSnappyStreamTest {
     }
 
     @Test
-    public void testByteForByteTestData() throws Exception {
+    public void testByteForByteTestData()
+            throws Exception
+    {
         for (File testFile : SnappyTest.getTestFiles()) {
             byte[] original = Files.toByteArray(testFile);
             byte[] compressed = compress(original);
@@ -134,17 +156,23 @@ public abstract class AbstractSnappyStreamTest {
     }
 
     @Test(expectedExceptions = EOFException.class, expectedExceptionsMessageRegExp = ".*stream header.*")
-    public void testEmptyStream() throws Exception {
+    public void testEmptyStream()
+            throws Exception
+    {
         uncompress(new byte[0]);
     }
 
     @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = ".*stream header.*")
-    public void testInvalidStreamHeader() throws Exception {
-        uncompress(new byte[] { 'b', 0, 0, 'g', 'u', 's', 0 });
+    public void testInvalidStreamHeader()
+            throws Exception
+    {
+        uncompress(new byte[] {'b', 0, 0, 'g', 'u', 's', 0});
     }
 
     @Test
-    public void testCloseIsIdempotent() throws Exception {
+    public void testCloseIsIdempotent()
+            throws Exception
+    {
         byte[] random = getRandom(0.5, 500000);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -157,8 +185,7 @@ public abstract class AbstractSnappyStreamTest {
 
         byte[] compressed = out.toByteArray();
 
-        InputStream snappyIn = createInputStream(new ByteArrayInputStream(
-                compressed), true);
+        InputStream snappyIn = createInputStream(new ByteArrayInputStream(compressed), true);
         byte[] uncompressed = toByteArray(snappyIn);
         assertEquals(uncompressed, random);
 
@@ -169,20 +196,20 @@ public abstract class AbstractSnappyStreamTest {
     /**
      * Tests that the presence of the marker bytes can appear as a valid frame
      * anywhere in stream.
-     * 
-     * @throws IOException
      */
     @Test
-    public void testMarkerFrameInStream() throws IOException {
-        final int size = 500000;
+    public void testMarkerFrameInStream()
+            throws IOException
+    {
+        int size = 500000;
         byte[] random = getRandom(0.5, size);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final OutputStream os = createOutputStream(out);
+        OutputStream os = createOutputStream(out);
 
-        final byte[] markerFrame = getMarkerFrame();
+        byte[] markerFrame = getMarkerFrame();
 
-        for (int i = 0; i < size;) {
+        for (int i = 0; i < size; ) {
             int toWrite = Math.max((size - i) / 4, 512);
 
             // write some data to be compressed
@@ -199,24 +226,26 @@ public abstract class AbstractSnappyStreamTest {
             i += toWrite;
         }
 
-        final byte[] compressed = out.toByteArray();
-        final byte[] uncompressed = uncompress(compressed);
+        byte[] compressed = out.toByteArray();
+        byte[] uncompressed = uncompress(compressed);
 
         assertEquals(random, uncompressed);
     }
 
     protected abstract byte[] getMarkerFrame();
 
-    protected static byte[] getRandom(double compressionRatio, int length) {
-        SnappyTest.RandomGenerator gen = new SnappyTest.RandomGenerator(
-                compressionRatio);
+    protected static byte[] getRandom(double compressionRatio, int length)
+    {
+        SnappyTest.RandomGenerator gen = new SnappyTest.RandomGenerator(compressionRatio);
         gen.getNextPosition(length);
         byte[] random = Arrays.copyOf(gen.data, length);
         assertEquals(random.length, length);
         return random;
     }
 
-    protected byte[] compress(byte[] original) throws IOException {
+    protected byte[] compress(byte[] original)
+            throws IOException
+    {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         OutputStream snappyOut = createOutputStream(out);
         snappyOut.write(original);
@@ -224,8 +253,9 @@ public abstract class AbstractSnappyStreamTest {
         return out.toByteArray();
     }
 
-    protected byte[] uncompress(byte[] compressed) throws IOException {
-        return toByteArray(createInputStream(new ByteArrayInputStream(
-                compressed), true));
+    protected byte[] uncompress(byte[] compressed)
+            throws IOException
+    {
+        return toByteArray(createInputStream(new ByteArrayInputStream(compressed), true));
     }
 }

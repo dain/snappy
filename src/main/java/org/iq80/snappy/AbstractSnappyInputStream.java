@@ -1,24 +1,38 @@
 /*
- * Created: Mar 14, 2013
+ * Copyright (C) 2011 the original author or authors.
+ * See the notice.md file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.iq80.snappy;
-
-import static java.lang.Math.min;
-import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
-import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
-import static org.iq80.snappy.SnappyInternalUtils.readBytes;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import static java.lang.Math.min;
+import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
+import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
+import static org.iq80.snappy.SnappyInternalUtils.readBytes;
+
 /**
  * A common base class for frame based snappy input streams.
- * 
- * @author Brett Okken
  */
-abstract class AbstractSnappyInputStream extends InputStream {
+abstract class AbstractSnappyInputStream
+        extends InputStream
+{
     private final InputStream in;
     private final byte[] frameHeader;
     private final boolean verifyChecksums;
@@ -45,7 +59,7 @@ abstract class AbstractSnappyInputStream extends InputStream {
     private boolean eof;
 
     /**
-     * The position in {@link buffer} to read to.
+     * The position in {@link #input} to read to.
      */
     private int valid;
 
@@ -64,46 +78,42 @@ abstract class AbstractSnappyInputStream extends InputStream {
     /**
      * Creates a Snappy input stream to read data from the specified underlying
      * input stream.
-     * 
-     * @param in
-     *            the underlying input stream
-     * @param verifyChecksums
-     *            if true, checksums in input stream will be verified
+     *
+     * @param in the underlying input stream
+     * @param verifyChecksums if true, checksums in input stream will be verified
+     * @param expectedHeader the expected stream header
      */
-    public AbstractSnappyInputStream(InputStream in, int maxBlockSize,
-            int frameHeaderSize, boolean verifyChecksums) throws IOException {
+    public AbstractSnappyInputStream(InputStream in, int maxBlockSize, int frameHeaderSize, boolean verifyChecksums, byte[] expectedHeader)
+            throws IOException
+    {
         this.in = in;
         this.verifyChecksums = verifyChecksums;
-        recycler = BufferRecycler.instance();
+        this.recycler = BufferRecycler.instance();
         allocateBuffersBasedOnSize(maxBlockSize + 5);
         this.frameHeader = new byte[frameHeaderSize];
 
         // stream must begin with stream header
-        final byte[] expectedHeader = getExpectedHeader();
-        final byte[] actualHeader = new byte[expectedHeader.length];
+        byte[] actualHeader = new byte[expectedHeader.length];
 
-        final int read = readBytes(in, actualHeader, 0, actualHeader.length);
+        int read = readBytes(in, actualHeader, 0, actualHeader.length);
         if (read < expectedHeader.length) {
-            throw new EOFException(
-                    "encountered EOF while reading stream header");
+            throw new EOFException("encountered EOF while reading stream header");
         }
         if (!Arrays.equals(expectedHeader, actualHeader)) {
             throw new IOException("invalid stream header");
         }
     }
 
-    /**
-     * @param size
-     */
-    private void allocateBuffersBasedOnSize(int size) {
+    private void allocateBuffersBasedOnSize(int size)
+    {
         input = recycler.allocInputBuffer(size);
         uncompressed = recycler.allocDecodeBuffer(size);
     }
 
-    protected abstract byte[] getExpectedHeader();
-
     @Override
-    public int read() throws IOException {
+    public int read()
+            throws IOException
+    {
         if (closed) {
             return -1;
         }
@@ -114,7 +124,9 @@ abstract class AbstractSnappyInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] output, int offset, int length) throws IOException {
+    public int read(byte[] output, int offset, int length)
+            throws IOException
+    {
         checkNotNull(output, "output is null");
         checkPositionIndexes(offset, offset + length, output.length);
         if (closed) {
@@ -128,14 +140,16 @@ abstract class AbstractSnappyInputStream extends InputStream {
             return -1;
         }
 
-        final int size = min(length, available());
+        int size = min(length, available());
         System.arraycopy(buffer, position, output, offset, size);
         position += size;
         return size;
     }
 
     @Override
-    public int available() throws IOException {
+    public int available()
+            throws IOException
+    {
         if (closed) {
             return 0;
         }
@@ -143,10 +157,13 @@ abstract class AbstractSnappyInputStream extends InputStream {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close()
+            throws IOException
+    {
         try {
             in.close();
-        } finally {
+        }
+        finally {
             if (!closed) {
                 closed = true;
                 recycler.releaseInputBuffer(input);
@@ -155,11 +172,13 @@ abstract class AbstractSnappyInputStream extends InputStream {
         }
     }
 
-    static enum FrameAction {
-        RAW, SKIP, UNCOMPRESS;
+    enum FrameAction
+    {
+        RAW, SKIP, UNCOMPRESS
     }
 
-    public static final class FrameMetaData {
+    public static final class FrameMetaData
+    {
         final int length;
         final FrameAction frameAction;
 
@@ -167,29 +186,28 @@ abstract class AbstractSnappyInputStream extends InputStream {
          * @param frameAction
          * @param length
          */
-        public FrameMetaData(FrameAction frameAction, int length) {
-            super();
+        public FrameMetaData(FrameAction frameAction, int length)
+        {
             this.frameAction = frameAction;
             this.length = length;
         }
     }
 
-    public static final class FrameData {
+    public static final class FrameData
+    {
         final int checkSum;
         final int offset;
 
-        /**
-         * @param checkSum
-         * @param offset
-         */
-        public FrameData(int checkSum, int offset) {
-            super();
+        public FrameData(int checkSum, int offset)
+        {
             this.checkSum = checkSum;
             this.offset = offset;
         }
     }
 
-    private boolean ensureBuffer() throws IOException {
+    private boolean ensureBuffer()
+            throws IOException
+    {
         if (available() > 0) {
             return true;
         }
@@ -203,7 +221,7 @@ abstract class AbstractSnappyInputStream extends InputStream {
         }
 
         // get action based on header
-        final FrameMetaData frameMetaData = getFrameMetaData(frameHeader);
+        FrameMetaData frameMetaData = getFrameMetaData(frameHeader);
 
         if (FrameAction.SKIP == frameMetaData.frameAction) {
             SnappyInternalUtils.skip(in, frameMetaData.length);
@@ -214,15 +232,15 @@ abstract class AbstractSnappyInputStream extends InputStream {
             allocateBuffersBasedOnSize(frameMetaData.length);
         }
 
-        final int actualRead = readBytes(in, input, 0, frameMetaData.length);
+        int actualRead = readBytes(in, input, 0, frameMetaData.length);
         if (actualRead != frameMetaData.length) {
             throw new EOFException("unexpectd EOF when reading frame");
         }
 
-        final FrameData frameData = getFrameData(frameHeader, input, actualRead);
+        FrameData frameData = getFrameData(frameHeader, input, actualRead);
 
         if (FrameAction.UNCOMPRESS == frameMetaData.frameAction) {
-            final int uncompressedLength = Snappy.getUncompressedLength(input,
+            int uncompressedLength = Snappy.getUncompressedLength(input,
                     frameData.offset);
 
             if (uncompressedLength > uncompressed.length) {
@@ -233,7 +251,8 @@ abstract class AbstractSnappyInputStream extends InputStream {
                     - frameData.offset, uncompressed, 0);
             this.buffer = uncompressed;
             this.position = 0;
-        } else {
+        }
+        else {
             // we need to start reading at the offset
             this.position = frameData.offset;
             this.buffer = input;
@@ -243,8 +262,7 @@ abstract class AbstractSnappyInputStream extends InputStream {
         }
 
         if (verifyChecksums) {
-            final int actualCrc32c = Crc32C.maskedCrc32c(buffer, position,
-                    valid - position);
+            int actualCrc32c = Crc32C.maskedCrc32c(buffer, position, valid - position);
             if (frameData.checkSum != actualCrc32c) {
                 throw new IOException("Corrupt input: invalid checksum");
             }
@@ -263,21 +281,17 @@ abstract class AbstractSnappyInputStream extends InputStream {
     /**
      * Take the frame header and the content of the frame to describe metadata
      * about the content.
-     * 
-     * @param frameHeader
-     *            The frame header.
-     * @param content
-     *            The content of the of the frame. Content begins at index
-     *            {@code 0}.
-     * @param length
-     *            The length of the content.
+     *
+     * @param frameHeader The frame header.
+     * @param content The content of the of the frame. Content begins at index {@code 0}.
+     * @param length The length of the content.
      * @return Metadata about the content of the frame.
-     * @throws IOException
      */
-    protected abstract FrameData getFrameData(byte[] frameHeader,
-            byte[] content, int length) throws IOException;
+    protected abstract FrameData getFrameData(byte[] frameHeader, byte[] content, int length);
 
-    private boolean readBlockHeader() throws IOException {
+    private boolean readBlockHeader()
+            throws IOException
+    {
         int read = readBytes(in, frameHeader, 0, frameHeader.length);
 
         if (read == -1) {

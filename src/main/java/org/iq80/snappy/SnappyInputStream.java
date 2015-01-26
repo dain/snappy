@@ -17,13 +17,13 @@
  */
 package org.iq80.snappy;
 
-import static java.lang.String.format;
-import static org.iq80.snappy.SnappyOutputStream.MAX_BLOCK_SIZE;
-import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+
+import static java.lang.String.format;
+import static org.iq80.snappy.SnappyOutputStream.MAX_BLOCK_SIZE;
+import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
 
 /**
  * This class implements an input stream for reading Snappy compressed data
@@ -32,7 +32,7 @@ import java.util.Arrays;
  * <b>NOTE:</b>This implementation cannot read compressed data produced
  * by {@link SnappyFramedOutputStream}.
  * </p>
- * 
+ *
  * @deprecated Prefer the use of {@link SnappyFramedInputStream} which implements
  * the standard {@code x-snappy-framed} specification.
  */
@@ -52,6 +52,7 @@ public class SnappyInputStream
     {
         this(in, true);
     }
+
     /**
      * Creates a Snappy input stream to read data from the specified underlying input stream.
      *
@@ -61,32 +62,20 @@ public class SnappyInputStream
     public SnappyInputStream(InputStream in, boolean verifyChecksums)
             throws IOException
     {
-        super(in, MAX_BLOCK_SIZE, HEADER_LENGTH, verifyChecksums);
+        super(in, MAX_BLOCK_SIZE, HEADER_LENGTH, verifyChecksums, STREAM_HEADER);
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected byte[] getExpectedHeader()
-    {
-        return STREAM_HEADER;
-    }
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected FrameMetaData getFrameMetaData(byte[] frameHeader)
             throws IOException
     {
         int x = frameHeader[0] & 0xFF;
-        
+
         int a = frameHeader[1] & 0xFF;
         int b = frameHeader[2] & 0xFF;
         int length = (a << 8) | b;
-        
-        final FrameAction action;
+
+        FrameAction action;
         switch (x) {
             case 0x00:
                 action = FrameAction.RAW;
@@ -95,8 +84,7 @@ public class SnappyInputStream
                 action = FrameAction.UNCOMPRESS;
                 break;
             case 's':
-                if(!Arrays.equals(STREAM_HEADER, frameHeader))
-                {
+                if (!Arrays.equals(STREAM_HEADER, frameHeader)) {
                     throw new IOException(format("invalid compressed flag in header: 0x%02x", x));
                 }
                 action = FrameAction.SKIP;
@@ -105,25 +93,23 @@ public class SnappyInputStream
             default:
                 throw new IOException(format("invalid compressed flag in header: 0x%02x", x));
         }
-        
+
         if (((length <= 0) || (length > MAX_BLOCK_SIZE)) && action != FrameAction.SKIP) {
             throw new IOException("invalid block size in header: " + length);
         }
-        
+
         return new FrameMetaData(action, length);
     }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected FrameData getFrameData(byte[] frameHeader, byte[] content,
-            int length) {
-        return new FrameData(getCrc32c(frameHeader), 0);
-    }
 
-    private int getCrc32c(byte[] header) {
-        return ((header[3] & 0xFF) << 24) | ((header[4] & 0xFF) << 16)
-                | ((header[5] & 0xFF) << 8) | (header[6] & 0xFF);
+    @Override
+    protected FrameData getFrameData(byte[] frameHeader, byte[] content, int length)
+    {
+        // crc is contained in the frame header
+        int crc32c = (frameHeader[3] & 0xFF) << 24 |
+                (frameHeader[4] & 0xFF) << 16 |
+                (frameHeader[5] & 0xFF) << 8 |
+                (frameHeader[6] & 0xFF);
+
+        return new FrameData(crc32c, 0);
     }
 }

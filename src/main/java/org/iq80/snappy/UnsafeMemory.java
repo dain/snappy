@@ -21,7 +21,8 @@ import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 
-class UnsafeMemory implements Memory
+class UnsafeMemory
+        implements Memory
 {
     private static final Unsafe unsafe;
 
@@ -98,6 +99,6 @@ class UnsafeMemory implements Memory
         assert inputIndex + length <= input.length;
         assert outputIndex >= 0;
         assert outputIndex + length <= output.length;
-        unsafe.copyMemory(input, UnsafeMemory.BYTE_ARRAY_OFFSET + inputIndex, output, UnsafeMemory.BYTE_ARRAY_OFFSET + outputIndex, length);
+        unsafe.copyMemory(input, BYTE_ARRAY_OFFSET + inputIndex, output, BYTE_ARRAY_OFFSET + outputIndex, length);
     }
 }

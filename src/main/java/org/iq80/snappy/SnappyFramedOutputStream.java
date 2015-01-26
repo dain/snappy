@@ -1,26 +1,38 @@
 /*
- * Created: Mar 11, 2013
+ * Copyright (C) 2011 the original author or authors.
+ * See the notice.md file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.iq80.snappy;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import static org.iq80.snappy.SnappyFramed.COMPRESSED_DATA_FLAG;
 import static org.iq80.snappy.SnappyFramed.HEADER_BYTES;
 import static org.iq80.snappy.SnappyFramed.UNCOMPRESSED_DATA_FLAG;
 import static org.iq80.snappy.SnappyInternalUtils.checkArgument;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 /**
- * Implements the <a
- * href="http://snappy.googlecode.com/svn/trunk/framing_format.txt"
- * >x-snappy-framed</a> as an {@link OutputStream}.
- * 
- * @author Brett Okken
+ * Implements the <a href="http://snappy.googlecode.com/svn/trunk/framing_format.txt" >x-snappy-framed</a> as an {@link OutputStream}.
  */
-public final class SnappyFramedOutputStream extends AbstractSnappyOutputStream {
+public final class SnappyFramedOutputStream
+        extends AbstractSnappyOutputStream
+{
     /**
-     * However, we place an additional restriction that the uncompressed data in
+     * We place an additional restriction that the uncompressed data in
      * a chunk must be no longer than 65536 bytes. This allows consumers to
      * easily use small fixed-size buffers.
      */
@@ -30,33 +42,24 @@ public final class SnappyFramedOutputStream extends AbstractSnappyOutputStream {
 
     public static final double DEFAULT_MIN_COMPRESSION_RATIO = 0.85d;
 
-    /**
-     * 
-     * @param out
-     * @throws IOException
-     */
-    public SnappyFramedOutputStream(OutputStream out) throws IOException {
+    public SnappyFramedOutputStream(OutputStream out)
+            throws IOException
+    {
         this(out, DEFAULT_BLOCK_SIZE, DEFAULT_MIN_COMPRESSION_RATIO);
     }
 
-    /**
-     * @param out
-     * @param blockSize
-     * @param minCompressionRatio
-     * @throws IOException
-     */
     public SnappyFramedOutputStream(OutputStream out, int blockSize,
-            double minCompressionRatio) throws IOException {
+            double minCompressionRatio)
+            throws IOException
+    {
         super(out, blockSize, minCompressionRatio);
-        checkArgument(blockSize > 0 && blockSize <= MAX_BLOCK_SIZE,
-                "blockSize must be in (0, 65536]", blockSize);
+        checkArgument(blockSize > 0 && blockSize <= MAX_BLOCK_SIZE, "blockSize must be in (0, 65536]", blockSize);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void writeHeader(OutputStream out) throws IOException {
+    protected void writeHeader(OutputStream out)
+            throws IOException
+    {
         out.write(HEADER_BYTES);
     }
 
@@ -67,13 +70,14 @@ public final class SnappyFramedOutputStream extends AbstractSnappyOutputStream {
      * header is not counted in the data length.
      */
     @Override
-    protected void writeBlock(final OutputStream out, byte[] data, int offset,
-            int length, boolean compressed, int crc32c) throws IOException {
+    protected void writeBlock(OutputStream out, byte[] data, int offset, int length, boolean compressed, int crc32c)
+            throws IOException
+    {
         out.write(compressed ? COMPRESSED_DATA_FLAG : UNCOMPRESSED_DATA_FLAG);
 
         // the length written out to the header is both the checksum and the
         // frame
-        final int headerLength = length + 4;
+        int headerLength = length + 4;
 
         // write length
         out.write(headerLength);
@@ -89,5 +93,4 @@ public final class SnappyFramedOutputStream extends AbstractSnappyOutputStream {
         // write data
         out.write(data, offset, length);
     }
-
 }
