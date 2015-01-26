@@ -17,10 +17,13 @@
  */
 package org.iq80.snappy;
 
-import com.google.common.base.Charsets;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static com.google.common.primitives.UnsignedBytes.toInt;
+import static org.iq80.snappy.SnappyFramed.COMPRESSED_DATA_FLAG;
+import static org.iq80.snappy.SnappyFramed.HEADER_BYTES;
+import static org.iq80.snappy.SnappyFramed.UNCOMPRESSED_DATA_FLAG;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -29,13 +32,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static com.google.common.primitives.UnsignedBytes.toInt;
-import static org.iq80.snappy.SnappyFramed.COMPRESSED_DATA_FLAG;
-import static org.iq80.snappy.SnappyFramed.HEADER_BYTES;
-import static org.iq80.snappy.SnappyFramed.UNCOMPRESSED_DATA_FLAG;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+import com.google.common.base.Charsets;
 
 /**
  * Tests the functionality of {@link org.iq80.snappy.SnappyFramedInputStream}
@@ -52,14 +53,14 @@ public class SnappyFramedStreamTest
     }
 
     @Override
-    protected OutputStream createOutputStream(OutputStream target)
+    protected SnappyFramedOutputStream createOutputStream(OutputStream target)
             throws IOException
     {
         return new SnappyFramedOutputStream(target);
     }
 
     @Override
-    protected InputStream createInputStream(InputStream source,
+    protected SnappyFramedInputStream createInputStream(InputStream source,
             boolean verifyCheckSums)
             throws IOException
     {
@@ -110,7 +111,7 @@ public class SnappyFramedStreamTest
         byte[] random = getRandom(1, 5000);
 
         byte[] compressed = compress(random);
-        byte[] uncompressed = uncompress(compressed);
+        byte[] uncompressed = uncompress2(compressed);
 
         assertEquals(uncompressed, random);
         assertEquals(compressed.length, random.length + 10 + 4 + 4);
@@ -130,7 +131,7 @@ public class SnappyFramedStreamTest
     {
         byte[] empty = new byte[0];
         assertEquals(compress(empty), HEADER_BYTES);
-        assertEquals(uncompress(HEADER_BYTES), empty);
+        assertEquals(uncompress2(HEADER_BYTES), empty);
     }
 
     @Test(expectedExceptions = EOFException.class, expectedExceptionsMessageRegExp = ".*block header.*")

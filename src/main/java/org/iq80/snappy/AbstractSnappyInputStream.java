@@ -17,21 +17,26 @@
  */
 package org.iq80.snappy;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-
 import static java.lang.Math.min;
 import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
 import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
 import static org.iq80.snappy.SnappyInternalUtils.readBytes;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
+
 /**
  * A common base class for frame based snappy input streams.
  */
 abstract class AbstractSnappyInputStream
-        extends InputStream
+        extends InputStream implements ReadableByteChannel
 {
     private final InputStream in;
     private final byte[] frameHeader;
@@ -144,6 +149,102 @@ abstract class AbstractSnappyInputStream
         System.arraycopy(buffer, position, output, offset, size);
         position += size;
         return size;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isOpen()
+    {
+        return !closed;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int read(ByteBuffer dst) 
+            throws IOException
+    {
+        checkNotNull(dst, "output is null");
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+
+        final int remaining = dst.remaining();
+        if (remaining == 0) {
+            return 0;
+        }
+        if (!ensureBuffer()) {
+            return -1;
+        }
+
+        final int size = min(remaining, available());
+        dst.put(buffer, position, size);
+        position += size;
+        return size;
+    }
+    
+    /**
+     * Transfers all the (remaining) content to <i>dest</i>.
+     * @param destination The destination to write all content to. Must not be {@code null}.
+     * @return The number of bytes transferred. This may return {@code 0} if EOF has already been reached.
+     * @throws IOException
+     */
+    public long transferTo(OutputStream destination)
+            throws IOException
+    {
+        checkNotNull(destination, "destination is null");
+        
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+        
+        long transferred = 0;
+        
+        while(ensureBuffer()) {
+            final int available = available();
+            destination.write(buffer, position, available);
+            position += available;
+            transferred += available;
+        }
+        
+        return transferred;
+    }
+    
+    /**
+     * Transfers all the (remaining) content to <i>dest</i>.
+     * @param destination The destination to write all content to. Must not be {@code null}.
+     * @return The number of bytes transferred. This may return {@code 0} if EOF has already been reached.
+     * @throws IOException
+     */
+    public long transferTo(WritableByteChannel destination)
+            throws IOException
+    {
+        checkNotNull(destination, "destination is null");
+        
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+        
+        long transferred = 0;
+                
+        while(ensureBuffer()) {
+            //this has to be done each time through the loop 
+            //as buffer can point to different byte[] instance
+            final ByteBuffer bb = ByteBuffer.wrap(buffer);       
+            bb.clear();
+            bb.limit(valid);
+            bb.position(position);
+            
+            final int written = destination.write(bb);
+            
+            position += written;
+            transferred += written;
+        }
+        
+        return transferred;
     }
 
     @Override

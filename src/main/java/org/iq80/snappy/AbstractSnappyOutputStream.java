@@ -17,14 +17,19 @@
  */
 package org.iq80.snappy;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import static org.iq80.snappy.Crc32C.maskedCrc32c;
 import static org.iq80.snappy.Snappy.maxCompressedLength;
 import static org.iq80.snappy.SnappyInternalUtils.checkArgument;
 import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
 import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * This is a base class supporting both the {@link SnappyOutputStream} and
@@ -39,7 +44,7 @@ import static org.iq80.snappy.SnappyInternalUtils.checkPositionIndexes;
  * @since 0.4
  */
 abstract class AbstractSnappyOutputStream
-        extends OutputStream
+        extends OutputStream implements WritableByteChannel
 {
     private final BufferRecycler recycler;
     private final int blockSize;
@@ -105,6 +110,11 @@ abstract class AbstractSnappyOutputStream
         }
 
         int free = blockSize - position;
+        if (free == 0) {
+            flushBuffer();
+            free = blockSize - position;
+        }
+        
 
         // easy case: enough free space in buffer for entire input
         if (free >= length) {
@@ -129,6 +139,50 @@ abstract class AbstractSnappyOutputStream
 
         // copy remaining partial block into now-empty buffer
         copyToBuffer(input, offset, length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isOpen() {
+        return !closed;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        checkNotNull(src, "src is null");
+
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+        
+        final int remaining = src.remaining();
+        if (remaining == 0) {
+            return 0;
+        }
+        
+        if (blockSize == position) {
+            flushBuffer();
+        }     
+          
+        do {
+            final int free = blockSize - position;
+            final int getSize = Math.min(src.remaining(), free);
+
+            src.get(buffer, position, getSize);
+            position += getSize;
+
+            if (blockSize == position) {
+                flushBuffer();
+            }
+
+        } while (src.remaining() > 0);
+        
+        return remaining;
     }
 
     @Override
@@ -158,6 +212,85 @@ abstract class AbstractSnappyOutputStream
             recycler.releaseOutputBuffer(outputBuffer);
             recycler.releaseEncodeBuffer(buffer);
         }
+    }
+    
+    /**
+     * Transfers all the (remaining) content from <i>source</i>.
+     * @param source The source to read all content from Must not be {@code null}.
+     * @return The number of bytes transferred. This may return {@code 0} if EOF has already been reached.
+     * @throws IOException
+     */
+    public long transferFrom(InputStream source)
+            throws IOException
+    {
+        checkNotNull(source, "source is null");
+        
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+        
+        long transferred = 0;
+        int lastRead = 0;
+        do {
+            int available = blockSize - position;
+            if (available == 0){
+                flushBuffer();
+                available = blockSize;
+            }
+            
+            lastRead = source.read(buffer, position, available);
+
+            if (lastRead > 0) {
+                transferred += lastRead;
+                position += lastRead;
+            }
+
+        } while (lastRead > 0);
+        
+        return transferred;
+        
+    }
+    
+    /**
+     * Transfers all the (remaining) content from <i>source</i>.
+     * @param source The source to read all content from Must not be {@code null}.
+     * @return The number of bytes transferred. This may return {@code 0} if EOF has already been reached.
+     * @throws IOException
+     */
+    public long transferFrom(ReadableByteChannel source)
+            throws IOException
+    {
+        checkNotNull(source, "source is null");
+        
+        if (closed) {
+            throw new ClosedChannelException();
+        }
+        
+        final ByteBuffer bb = ByteBuffer.wrap(buffer);
+        bb.limit(blockSize);
+        
+        long transferred = 0;
+        int lastRead = 0;
+        do {
+            int available = blockSize - position;
+            if (available == 0){
+                flushBuffer();
+                available = blockSize;
+            }
+            
+            bb.position(position);
+            
+            lastRead = source.read(bb);
+
+            if (lastRead > 0) {
+                transferred += lastRead;
+                position += lastRead;
+            }
+
+        } while (lastRead > 0);
+        
+        return transferred;
+        
     }
 
     private void copyToBuffer(byte[] input, int offset, int length)
