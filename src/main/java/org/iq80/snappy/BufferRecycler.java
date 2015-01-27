@@ -45,7 +45,7 @@ class BufferRecycler
     private byte[] decodingBuffer;
     private byte[] encodingBuffer;
 
-    private short[] encodingHash;
+    private int[] encodingHash;
 
     /**
      * Accessor to get thread-local recycler instance
@@ -120,11 +120,11 @@ class BufferRecycler
         }
     }
 
-    public short[] allocEncodingHash(int suggestedSize)
+    public int[] allocEncodingHash(int suggestedSize)
     {
-        short[] buf = encodingHash;
+        int[] buf = encodingHash;
         if (buf == null || buf.length < suggestedSize) {
-            buf = new short[suggestedSize];
+            buf = new int[suggestedSize];
         }
         else {
             encodingHash = null;
@@ -132,7 +132,7 @@ class BufferRecycler
         return buf;
     }
 
-    public void releaseEncodingHash(short[] buffer)
+    public void releaseEncodingHash(int[] buffer)
     {
         if (encodingHash == null || (buffer != null && buffer.length > encodingHash.length)) {
             encodingHash = buffer;
