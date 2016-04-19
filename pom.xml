@@ -41,9 +41,9 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git://github.com/dain/snapy.git</connection>
-        <developerConnection>scm:git:git@github.com:dain/snapy.git</developerConnection>
-        <url>http://github.com/dain/snapy/tree/master</url>
+        <connection>scm:git:git://github.com/dain/snappy.git</connection>
+        <developerConnection>scm:git:git@github.com:dain/snappy.git</developerConnection>
+        <url>http://github.com/dain/snappy/tree/master</url>
     </scm>
 
     <prerequisites>
