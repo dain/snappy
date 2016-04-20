@@ -17,8 +17,10 @@
  */
 package org.iq80.snappy;
 
-import com.google.common.io.Files;
-import org.testng.annotations.Test;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static org.junit.Assert.assertArrayEquals;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,21 +29,26 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import org.testng.annotations.Test;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 
 /**
  * Common base class for testing streaming implementations.
  */
 public abstract class AbstractSnappyStreamTest
 {
-    protected abstract OutputStream createOutputStream(OutputStream target)
+    protected abstract AbstractSnappyOutputStream createOutputStream(OutputStream target)
             throws IOException;
 
-    protected abstract InputStream createInputStream(InputStream source, boolean verifyCheckSums)
+    protected abstract AbstractSnappyInputStream createInputStream(InputStream source, boolean verifyCheckSums)
             throws IOException;
 
     @Test
@@ -230,6 +237,114 @@ public abstract class AbstractSnappyStreamTest
         byte[] uncompressed = uncompress(compressed);
 
         assertEquals(random, uncompressed);
+    }    @Test
+    public void testLargeWrites_ByteBuffer()
+            throws Exception
+    {
+        byte[] random = getRandom(0.5, 500000);
+        
+        final ByteBuffer buffer = ByteBuffer.wrap(random);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        AbstractSnappyOutputStream snappyOut = createOutputStream(out);
+
+        // partially fill buffer
+        buffer.limit(1000);
+        snappyOut.write(buffer);
+
+        assertEquals(buffer.remaining(), 0);
+
+        // write more than the buffer size
+        buffer.limit(random.length);
+        snappyOut.write(buffer);
+
+        assertEquals(buffer.remaining(), 0);
+
+        // get compressed data
+        snappyOut.close();
+        byte[] compressed = out.toByteArray();
+        assertTrue(compressed.length < random.length);
+
+        // decompress
+        byte[] uncompressed = uncompress(compressed);
+        assertEquals(uncompressed, random);
+
+        // decompress byte at a time
+        InputStream in = createInputStream(
+                new ByteArrayInputStream(compressed), true);
+        int i = 0;
+        int c;
+        while ((c = in.read()) != -1) {
+            uncompressed[i++] = (byte) c;
+        }
+        assertEquals(i, random.length);
+        assertEquals(uncompressed, random);
+    }
+
+    @Test
+    public void testTransferFrom_InputStream() throws IOException {
+        final byte[] random = getRandom(0.5, 100000);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(
+                random.length);
+        AbstractSnappyOutputStream snappyOut = createOutputStream(baos);
+
+        snappyOut.transferFrom(new ByteArrayInputStream(random));
+
+        snappyOut.close();
+
+        final byte[] uncompressed = uncompress(baos.toByteArray());
+
+        assertArrayEquals(random, uncompressed);
+    }
+
+    @Test
+    public void testTransferFrom_ReadableByteChannel() throws IOException {
+        final byte[] random = getRandom(0.5, 100000);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(
+                random.length);
+        AbstractSnappyOutputStream snappyOut = createOutputStream(baos);
+
+        snappyOut.transferFrom(Channels.newChannel(new ByteArrayInputStream(random)));
+
+        snappyOut.close();
+
+        final byte[] uncompressed = uncompress2(baos.toByteArray());
+
+        assertArrayEquals(random, uncompressed);
+    }
+
+    @Test
+    public void testTransferTo_OutputStream() throws IOException {
+        final byte[] random = getRandom(0.5, 100000);
+
+        final byte[] compressed = compress(random);
+        final AbstractSnappyInputStream sfis = createInputStream(
+                new ByteArrayInputStream(compressed), true);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(
+                random.length);
+        sfis.transferTo(baos);
+
+        assertArrayEquals(random, baos.toByteArray());
+    }
+
+    @Test
+    public void testTransferTo_WritableByteChannel() throws IOException {
+        final byte[] random = getRandom(0.5, 100000);
+
+        final byte[] compressed = compress(random);
+        final AbstractSnappyInputStream sfis = createInputStream(
+                new ByteArrayInputStream(compressed), true);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(
+                random.length);
+        final WritableByteChannel wbc = Channels.newChannel(baos);
+        sfis.transferTo(wbc);
+        wbc.close();
+
+        assertArrayEquals(random, baos.toByteArray());
     }
 
     protected abstract byte[] getMarkerFrame();
@@ -257,5 +372,21 @@ public abstract class AbstractSnappyStreamTest
             throws IOException
     {
         return toByteArray(createInputStream(new ByteArrayInputStream(compressed), true));
+    }
+
+    /**
+     * uncompresses the content using a {@link #createInputStream(InputStream, boolean)} as a {@link ReadableByteChannel}.
+     * @param compressed
+     * @return The uncompressed content.
+     * @throws IOException
+     */
+    protected byte[] uncompress2(byte[] compressed)
+            throws IOException
+    {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(compressed.length * 2);
+        
+        ByteStreams.copy(createInputStream(new ByteArrayInputStream(compressed), true), Channels.newChannel(baos));
+        
+        return baos.toByteArray();
     }
 }

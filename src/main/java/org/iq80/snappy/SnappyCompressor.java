@@ -17,12 +17,12 @@
  */
 package org.iq80.snappy;
 
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
 import static org.iq80.snappy.Snappy.COPY_1_BYTE_OFFSET;
 import static org.iq80.snappy.Snappy.COPY_2_BYTE_OFFSET;
 import static org.iq80.snappy.Snappy.LITERAL;
+
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 final class SnappyCompressor
 {
@@ -36,7 +36,7 @@ final class SnappyCompressor
     // helpful in implementing blocked decompression.  However the
     // decompression code should not rely on this guarantee since older
     // compression code may not obey it.
-    private static final int BLOCK_LOG = 15;
+    private static final int BLOCK_LOG = 16;
     private static final int BLOCK_SIZE = 1 << BLOCK_LOG;
 
     private static final int INPUT_MARGIN_BYTES = 15;
@@ -81,7 +81,7 @@ final class SnappyCompressor
 
         int hashTableSize = getHashTableSize(uncompressedLength);
         BufferRecycler recycler = BufferRecycler.instance();
-        short[] table = recycler.allocEncodingHash(hashTableSize);
+        int[] table = recycler.allocEncodingHash(hashTableSize);
 
         for (int read = 0; read < uncompressedLength; read += BLOCK_SIZE) {
             // Get encoding table for compression
@@ -107,7 +107,7 @@ final class SnappyCompressor
             final int inputSize,
             final byte[] output,
             int outputIndex,
-            final short[] table)
+            final int[] table)
     {
         int ipIndex = inputOffset;
         assert inputSize <= BLOCK_SIZE;
@@ -192,7 +192,7 @@ final class SnappyCompressor
         return outputIndex;
     }
 
-    private static int[] findCandidate(byte[] input, int ipIndex, int ipLimit, int inputOffset, int shift, short[] table, int skip)
+    private static int[] findCandidate(byte[] input, int ipIndex, int ipLimit, int inputOffset, int shift, int[] table, int skip)
     {
 
         int candidateIndex = 0;
@@ -207,7 +207,7 @@ final class SnappyCompressor
             assert candidateIndex < ipIndex;
 
             // update the hash to point to the current position
-            table[hash] = (short) (ipIndex - inputOffset);
+            table[hash] = ipIndex - inputOffset;
 
             // if the 4 byte sequence a the candidate index matches the sequence at the
             // current position, proceed to the next phase
@@ -230,7 +230,7 @@ final class SnappyCompressor
             int ipIndex,
             byte[] output,
             int outputIndex,
-            short[] table,
+            int[] table,
             int shift,
             int candidateIndex)
     {
@@ -274,13 +274,13 @@ final class SnappyCompressor
 
             // add hash starting with previous byte
             int prevHash = hashBytes(prevInt, shift);
-            table[prevHash] = (short) (ipIndex - inputOffset - 1);
+            table[prevHash] = ipIndex - inputOffset - 1;
 
             // update hash of current byte
             int curHash = hashBytes(inputBytes, shift);
 
             candidateIndex = inputOffset + table[curHash];
-            table[curHash] = (short) (ipIndex - inputOffset);
+            table[curHash] = ipIndex - inputOffset;
 
         } while (inputBytes == SnappyInternalUtils.loadInt(input, candidateIndex));
         return new int[] {ipIndex, outputIndex};

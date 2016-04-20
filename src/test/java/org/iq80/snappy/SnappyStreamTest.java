@@ -17,8 +17,10 @@
  */
 package org.iq80.snappy;
 
-import com.google.common.base.Charsets;
-import org.testng.annotations.Test;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static com.google.common.primitives.UnsignedBytes.toInt;
+import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
+import static org.testng.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -28,23 +30,23 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static com.google.common.primitives.UnsignedBytes.toInt;
-import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
-import static org.testng.Assert.assertEquals;
+import org.testng.annotations.Test;
 
+import com.google.common.base.Charsets;
+
+@SuppressWarnings("deprecation")
 public class SnappyStreamTest
         extends AbstractSnappyStreamTest
 {
     @Override
-    protected OutputStream createOutputStream(OutputStream target)
+    protected SnappyOutputStream createOutputStream(OutputStream target)
             throws IOException
     {
         return new SnappyOutputStream(target);
     }
 
     @Override
-    protected InputStream createInputStream(InputStream source, boolean verifyCheckSums)
+    protected SnappyInputStream createInputStream(InputStream source, boolean verifyCheckSums)
             throws IOException
     {
         return new SnappyInputStream(source, verifyCheckSums);
