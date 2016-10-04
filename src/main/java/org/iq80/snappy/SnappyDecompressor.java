@@ -161,7 +161,7 @@ final class SnappyDecompressor
                 {
                     int spaceLeft = outputLimit - opIndex;
                     int srcIndex = opIndex - copyOffset;
-                    if (srcIndex < outputOffset) {
+                    if (srcIndex < outputOffset || copyOffset <= 0) {
                         throw new CorruptionException("Invalid copy offset for opcode starting at " + (ipIndex - trailerBytes - 1));
                     }
 
@@ -245,7 +245,7 @@ final class SnappyDecompressor
                 int spaceLeft = outputLimit - opIndex;
                 int srcIndex = opIndex - copyOffset;
 
-                if (srcIndex < outputOffset) {
+                if (srcIndex < outputOffset || copyOffset <= 0) {
                     throw new CorruptionException("Invalid copy offset for opcode starting at " + (ipIndex - trailerBytes - 1));
                 }
 

@@ -22,6 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -41,6 +42,16 @@ public class SnappyTest
             catch (Error e) {
                 Assert.fail(i + " byte block", e);
             }
+        }
+    }
+
+    @Test
+    public void testIssue30() throws IOException {
+        byte[] compressed = {107,115,47,85,112,-127,83,30,49,9,0,67,38,-99,41,9,25,26,102,20,81,116,-2,8,21,98,8,21,-18,-94,0,5,-94,41,69,-2,60,22,98,60,22,-50,-96,0,109,-88,0,-111,-2,-42,1,-2,-42,1,61,-42,41,38,12,-61,4,0,-110,-70,-107,0,98,-36,2,28,114,101,115,117,108,116,47,82,5,7,101,-75,18,-91,17,12,72,101,97,100,26,-39,44,102,27,0,54,-76,5,-2,-48,4,-107,-48,-126,-109,0,41,6,8,-23,3,0,-58,-77};
+        try {
+            Snappy.uncompress(compressed, 0, compressed.length);
+            Assert.fail();
+        } catch (CorruptionException ignored) {
         }
     }
 
