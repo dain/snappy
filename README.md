@@ -1,6 +1,10 @@
-# Snappy in Java
+# 🚚 MOVED 🚚
 
-__NOTE: Future development of Snappy without JNI has moved to [aircompressor](https://github.com/airlift/aircompressor)__
+### __Future development of Snappy without JNI has moved to [aircompressor](https://github.com/airlift/aircompressor)__
+
+</br>
+
+# Snappy in Java
 
 This is a rewrite (port) of [Snappy](http://code.google.com/p/snappy/) written in
 pure Java. This compression code produces a byte-for-byte exact copy of the output
