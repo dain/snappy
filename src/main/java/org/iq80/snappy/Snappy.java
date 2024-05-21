@@ -17,83 +17,60 @@
  */
 package org.iq80.snappy;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
-import static org.iq80.snappy.SnappyFramed.HEADER_BYTES;
-import static org.iq80.snappy.SnappyInternalUtils.checkArgument;
-import static org.iq80.snappy.SnappyInternalUtils.checkNotNull;
-import static org.iq80.snappy.SnappyOutputStream.STREAM_HEADER;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+import static sun.misc.Unsafe.ARRAY_BYTE_BASE_OFFSET;
 
 public final class Snappy
 {
-
-    private static final int MAX_HEADER_LENGTH = Math.max(STREAM_HEADER.length, HEADER_BYTES.length);
-
-    private Snappy()
-    {
-    }
-
-    /**
-     * Uses the stream marker bytes to determine if the {@link SnappyFramedInputStream} or
-     * {@link SnappyInputStream} should be used to decompress the content of <i>source</i>.
-     *
-     * @param source The compressed content to decompress. Must {@link InputStream#markSupported()
-     * support} {@link InputStream#mark(int).}
-     * @param verifyChecksums Indicates if the crc32-c checksums should be calculated and verified.
-     * @return An appropriate {@link InputStream} implementation to decompress the content.
-     * @throws IllegalArgumentException If <i>source</i> does not {@link InputStream#markSupported()
-     * support} mark/reset or does not contain the appropriate marker bytes for either implementation.
-     */
-    @SuppressWarnings("deprecation")
-    public static InputStream determineSnappyInputStream(InputStream source, boolean verifyChecksums)
-            throws IOException
-    {
-        checkNotNull(source, "source is null");
-        checkArgument(source.markSupported(), "source does not support mark/reset");
-
-        // read the header and then reset to start of stream
-        source.mark(MAX_HEADER_LENGTH);
-        byte[] buffer = new byte[MAX_HEADER_LENGTH];
-        int read = SnappyInternalUtils.readBytes(source, buffer, 0, MAX_HEADER_LENGTH);
-        source.reset();
-
-        if (read != STREAM_HEADER.length || read != HEADER_BYTES.length) {
-            throw new IllegalArgumentException("invalid header");
-        }
-
-        if (buffer[0] == HEADER_BYTES[0]) {
-            checkArgument(Arrays.equals(Arrays.copyOf(buffer, HEADER_BYTES.length), HEADER_BYTES), "invalid header");
-            return new SnappyFramedInputStream(source, verifyChecksums);
-        }
-        else {
-            checkArgument(Arrays.equals(Arrays.copyOf(buffer, STREAM_HEADER.length), STREAM_HEADER), "invalid header");
-            return new SnappyInputStream(source, verifyChecksums);
-        }
-    }
+    private Snappy() {}
 
     public static int getUncompressedLength(byte[] compressed, int compressedOffset)
             throws CorruptionException
     {
-        return SnappyDecompressor.getUncompressedLength(compressed, compressedOffset);
+        long compressedAddress = ARRAY_BYTE_BASE_OFFSET + compressedOffset;
+        long compressedLimit = ARRAY_BYTE_BASE_OFFSET + compressed.length;
+
+        return SnappyRawDecompressor.getUncompressedLength(compressed, compressedAddress, compressedLimit);
     }
 
     public static byte[] uncompress(byte[] compressed, int compressedOffset, int compressedSize)
             throws CorruptionException
     {
-        return SnappyDecompressor.uncompress(compressed, compressedOffset, compressedSize);
+        byte[] output = new byte[getUncompressedLength(compressed, compressedOffset)];
+        int uncompressedSize = uncompress(compressed, compressedOffset, compressedSize, output, 0);
+        if (uncompressedSize != output.length) {
+            throw new CorruptionException(0, format("Recorded length is %s bytes but actual length after decompression is %s bytes ",
+                    output.length,
+                    uncompressedSize));
+        }
+        return output;
     }
 
     public static int uncompress(byte[] compressed, int compressedOffset, int compressedSize, byte[] uncompressed, int uncompressedOffset)
             throws CorruptionException
     {
-        return SnappyDecompressor.uncompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset);
+        return uncompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressed.length - uncompressedOffset);
+    }
+
+    public static int uncompress(byte[] compressed, int compressedOffset, int compressedSize, byte[] uncompressed, int uncompressedOffset, int uncompressedLength)
+    {
+        verifyRange(compressed, compressedOffset, compressedSize);
+        verifyRange(uncompressed, uncompressedOffset, uncompressedLength);
+
+        long inputAddress = ARRAY_BYTE_BASE_OFFSET + compressedOffset;
+        long inputLimit = inputAddress + compressedSize;
+        long outputAddress = ARRAY_BYTE_BASE_OFFSET + uncompressedOffset;
+        long outputLimit = outputAddress + uncompressed.length - uncompressedOffset;
+
+        return SnappyRawDecompressor.decompress(compressed, inputAddress, inputLimit, uncompressed, outputAddress, outputLimit);
     }
 
     public static int maxCompressedLength(int sourceLength)
     {
-        return SnappyCompressor.maxCompressedLength(sourceLength);
+        return SnappyRawCompressor.maxCompressedLength(sourceLength);
     }
 
     public static int compress(
@@ -103,13 +80,28 @@ public final class Snappy
             byte[] compressed,
             int compressedOffset)
     {
-        return SnappyCompressor.compress(uncompressed,
-                uncompressedOffset,
-                uncompressedLength,
-                compressed,
-                compressedOffset);
+        return compress(new CompressionContext(), uncompressed, uncompressedOffset, uncompressedLength, compressed, compressedOffset, compressed.length - compressedOffset);
     }
 
+    public static int compress(
+            CompressionContext context,
+            byte[] uncompressed,
+            int uncompressedOffset,
+            int uncompressedLength,
+            byte[] compressed,
+            int compressedOffset,
+            int maxCompressedLength)
+    {
+        verifyRange(uncompressed, uncompressedOffset, uncompressedLength);
+        verifyRange(compressed, compressedOffset, maxCompressedLength);
+
+        long inputAddress = ARRAY_BYTE_BASE_OFFSET + uncompressedOffset;
+        long inputLimit = inputAddress + uncompressedLength;
+        long outputAddress = ARRAY_BYTE_BASE_OFFSET + compressedOffset;
+        long outputLimit = outputAddress + maxCompressedLength;
+
+        return SnappyRawCompressor.compress(uncompressed, inputAddress, inputLimit, compressed, outputAddress, outputLimit, context.getTable());
+    }
 
     public static byte[] compress(byte[] data)
     {
@@ -119,8 +111,21 @@ public final class Snappy
         return trimmedBuffer;
     }
 
-    static final int LITERAL = 0;
-    static final int COPY_1_BYTE_OFFSET = 1;  // 3 bit length + 3 bits of offset in opcode
-    static final int COPY_2_BYTE_OFFSET = 2;
-    static final int COPY_4_BYTE_OFFSET = 3;
+    public static final class CompressionContext
+    {
+        private final short[] table = new short[SnappyRawCompressor.MAX_HASH_TABLE_SIZE];
+
+        private short[] getTable()
+        {
+            return table;
+        }
+    }
+
+    private static void verifyRange(byte[] data, int offset, int length)
+    {
+        requireNonNull(data, "data is null");
+        if (offset < 0 || length < 0 || offset + length > data.length) {
+            throw new IllegalArgumentException(format("Invalid offset or length (%s, %s) in array of length %s", offset, length, data.length));
+        }
+    }
 }

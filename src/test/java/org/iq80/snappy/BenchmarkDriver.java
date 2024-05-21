@@ -28,7 +28,7 @@ public enum BenchmarkDriver
 {
     JAVA_BLOCK {
         @Override
-        public long compress(TestData testData, long iterations)
+        public long compress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
@@ -36,7 +36,7 @@ public enum BenchmarkDriver
 
             long start = System.nanoTime();
             while (iterations-- > 0) {
-                Snappy.compress(contents, 0, contents.length, compressed, 0);
+                Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
             }
             long timeInNanos = System.nanoTime() - start;
 
@@ -44,12 +44,12 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long uncompress(TestData testData, long iterations)
+        public long uncompress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
             byte[] compressed = new byte[Snappy.maxCompressedLength(contents.length)];
-            int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+            int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
 
             byte[] uncompressed = new byte[contents.length];
 
@@ -72,7 +72,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long roundTrip(TestData testData, long iterations)
+        public long roundTrip(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
@@ -81,7 +81,7 @@ public enum BenchmarkDriver
 
             long start = System.nanoTime();
             while (iterations-- > 0) {
-                int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+                int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
                 Snappy.uncompress(compressed, 0, compressedSize, uncompressed, 0);
             }
             long timeInNanos = System.nanoTime() - start;
@@ -99,18 +99,18 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public double getCompressionRatio(TestData testData)
+        public double getCompressionRatio(TestData testData, Snappy.CompressionContext compressionContext)
         {
             byte[] contents = testData.getContents();
             byte[] compressed = new byte[Snappy.maxCompressedLength(contents.length)];
-            int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+            int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
             return 1.0 * (contents.length - compressedSize) / contents.length;
         }
     },
 
     JNI_BLOCK {
         @Override
-        public long compress(TestData testData, long iterations)
+        public long compress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
@@ -131,12 +131,12 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long uncompress(TestData testData, long iterations)
+        public long uncompress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
             byte[] compressed = new byte[Snappy.maxCompressedLength(contents.length)];
-            int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+            int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
 
             byte[] uncompressed = new byte[contents.length];
 
@@ -165,7 +165,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long roundTrip(TestData testData, long iterations)
+        public long roundTrip(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             // Read the file and create buffers out side of timing
             byte[] contents = testData.getContents();
@@ -176,7 +176,7 @@ public enum BenchmarkDriver
             try {
                 long start = System.nanoTime();
                 while (iterations-- > 0) {
-                    int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+                    int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
                     org.xerial.snappy.Snappy.uncompress(compressed, 0, compressedSize, uncompressed, 0);
                 }
                 timeInNanos = System.nanoTime() - start;
@@ -198,7 +198,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public double getCompressionRatio(TestData testData)
+        public double getCompressionRatio(TestData testData, Snappy.CompressionContext compressionContext)
         {
             byte[] contents = testData.getContents();
             byte[] compressed = new byte[Snappy.maxCompressedLength(contents.length)];
@@ -215,7 +215,7 @@ public enum BenchmarkDriver
 
     JAVA_STREAM {
         @Override
-        public long compress(TestData testData, long iterations)
+        public long compress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
                 // Read the file and create buffers out side of timing
@@ -225,7 +225,7 @@ public enum BenchmarkDriver
                 long start = System.nanoTime();
                 while (iterations-- > 0) {
                     rawOut.reset();
-                    SnappyOutputStream out = SnappyOutputStream.newChecksumFreeBenchmarkOutputStream(rawOut);
+                    SnappyFramedOutputStream out = SnappyFramedOutputStream.newChecksumFreeBenchmarkOutputStream(rawOut);
                     out.write(contents);
                     out.close();
                 }
@@ -240,7 +240,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long uncompress(TestData testData, long iterations)
+        public long uncompress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
 
@@ -248,7 +248,7 @@ public enum BenchmarkDriver
                 byte[] contents = testData.getContents();
 
                 ByteArrayOutputStream compressedStream = new ByteArrayOutputStream(Snappy.maxCompressedLength(contents.length));
-                SnappyOutputStream out = SnappyOutputStream.newChecksumFreeBenchmarkOutputStream(compressedStream);
+                SnappyFramedOutputStream out = SnappyFramedOutputStream.newChecksumFreeBenchmarkOutputStream(compressedStream);
                 out.write(contents);
                 out.close();
                 byte[] compressed = compressedStream.toByteArray();
@@ -259,7 +259,7 @@ public enum BenchmarkDriver
                 long start = System.nanoTime();
                 while (iterations-- > 0) {
                     ByteArrayInputStream compIn = new ByteArrayInputStream(compressed);
-                    SnappyInputStream in = new SnappyInputStream(compIn, false);
+                    SnappyFramedInputStream in = new SnappyFramedInputStream(compIn, false);
 
                     while (in.read(inputBuffer) >= 0) {
                     }
@@ -275,7 +275,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long roundTrip(TestData testData, long iterations)
+        public long roundTrip(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
                 // Read the file and create buffers out side of timing
@@ -287,12 +287,12 @@ public enum BenchmarkDriver
                 long start = System.nanoTime();
                 while (iterations-- > 0) {
                     compressedStream.reset();
-                    SnappyOutputStream out = SnappyOutputStream.newChecksumFreeBenchmarkOutputStream(compressedStream);
+                    SnappyFramedOutputStream out = SnappyFramedOutputStream.newChecksumFreeBenchmarkOutputStream(compressedStream);
                     out.write(contents);
                     out.close();
 
                     ByteArrayInputStream compIn = new ByteArrayInputStream(compressedStream.getBuffer(), 0, compressedStream.size());
-                    SnappyInputStream in = new SnappyInputStream(compIn, false);
+                    SnappyFramedInputStream in = new SnappyFramedInputStream(compIn, false);
 
                     while (in.read(inputBuffer) >= 0) {
                     }
@@ -308,13 +308,13 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public double getCompressionRatio(TestData testData)
+        public double getCompressionRatio(TestData testData, Snappy.CompressionContext compressionContext)
         {
             byte[] contents = testData.getContents();
             int compressedSize;
             try {
                 ByteArrayOutputStream rawOut = new ByteArrayOutputStream(Snappy.maxCompressedLength(contents.length));
-                SnappyOutputStream out = SnappyOutputStream.newChecksumFreeBenchmarkOutputStream(rawOut);
+                SnappyFramedOutputStream out = SnappyFramedOutputStream.newChecksumFreeBenchmarkOutputStream(rawOut);
                 out.write(contents);
                 out.close();
 
@@ -329,7 +329,7 @@ public enum BenchmarkDriver
 
     JNI_STREAM {
         @Override
-        public long compress(TestData testData, long iterations)
+        public long compress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
 
@@ -355,7 +355,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long uncompress(TestData testData, long iterations)
+        public long uncompress(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
 
@@ -390,7 +390,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public long roundTrip(TestData testData, long iterations)
+        public long roundTrip(TestData testData, long iterations, Snappy.CompressionContext compressionContext)
         {
             try {
 
@@ -424,7 +424,7 @@ public enum BenchmarkDriver
         }
 
         @Override
-        public double getCompressionRatio(TestData testData)
+        public double getCompressionRatio(TestData testData, Snappy.CompressionContext compressionContext)
         {
             byte[] contents = testData.getContents();
             int compressedSize;
@@ -443,12 +443,12 @@ public enum BenchmarkDriver
         }
     },;
 
-    public abstract long compress(TestData testData, long iterations);
+    public abstract long compress(TestData testData, long iterations, Snappy.CompressionContext compressionContext);
 
-    public abstract long uncompress(TestData testData, long iterations);
+    public abstract long uncompress(TestData testData, long iterations, Snappy.CompressionContext compressionContext);
 
-    public abstract long roundTrip(TestData testData, long iterations);
+    public abstract long roundTrip(TestData testData, long iterations, Snappy.CompressionContext compressionContext);
 
-    public abstract double getCompressionRatio(TestData testData);
+    public abstract double getCompressionRatio(TestData testData, Snappy.CompressionContext compressionContext);
 
 }

@@ -19,100 +19,10 @@ package org.iq80.snappy;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteOrder;
 
 final class SnappyInternalUtils
 {
-    private SnappyInternalUtils()
-    {
-    }
-
-    private static final Memory memory;
-
-    static {
-        // Try to only load one implementation of Memory to assure the call sites are monomorphic (fast)
-        Memory memoryInstance = null;
-
-        // TODO enable UnsafeMemory on big endian machines
-        //
-        // The current UnsafeMemory code assumes the machine is little endian, and will
-        // not work correctly on big endian CPUs.  For now, we will disable UnsafeMemory on
-        // big endian machines.  This will make the code significantly slower on big endian.
-        // In the future someone should add the necessary flip bytes calls to make this
-        // work efficiently on big endian machines.
-        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            try {
-                Class<? extends Memory> unsafeMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.UnsafeMemory").asSubclass(Memory.class);
-                Memory unsafeMemory = unsafeMemoryClass.newInstance();
-                if (unsafeMemory.loadInt(new byte[4], 0) == 0) {
-                    memoryInstance = unsafeMemory;
-                }
-            }
-            catch (Throwable ignored) {
-            }
-        }
-        if (memoryInstance == null) {
-            try {
-                Class<? extends Memory> slowMemoryClass = SnappyInternalUtils.class.getClassLoader().loadClass("org.iq80.snappy.SlowMemory").asSubclass(Memory.class);
-                Memory slowMemory = slowMemoryClass.newInstance();
-                if (slowMemory.loadInt(new byte[4], 0) == 0) {
-                    memoryInstance = slowMemory;
-                }
-                else {
-                    throw new AssertionError("SlowMemory class is broken!");
-                }
-            }
-            catch (Throwable ignored) {
-                throw new AssertionError("Could not find SlowMemory class");
-            }
-        }
-        memory = memoryInstance;
-    }
-
-    static final boolean HAS_UNSAFE = memory.fastAccessSupported();
-
-    static boolean equals(byte[] left, int leftIndex, byte[] right, int rightIndex, int length)
-    {
-        checkPositionIndexes(leftIndex, leftIndex + length, left.length);
-        checkPositionIndexes(rightIndex, rightIndex + length, right.length);
-
-        for (int i = 0; i < length; i++) {
-            if (left[leftIndex + i] != right[rightIndex + i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static int lookupShort(short[] data, int index)
-    {
-        return memory.lookupShort(data, index);
-    }
-
-    public static int loadByte(byte[] data, int index)
-    {
-        return memory.loadByte(data, index);
-    }
-
-    static int loadInt(byte[] data, int index)
-    {
-        return memory.loadInt(data, index);
-    }
-
-    static void copyLong(byte[] src, int srcIndex, byte[] dest, int destIndex)
-    {
-        memory.copyLong(src, srcIndex, dest, destIndex);
-    }
-
-    static long loadLong(byte[] data, int index)
-    {
-        return memory.loadLong(data, index);
-    }
-
-    static void copyMemory(byte[] input, int inputIndex, byte[] output, int outputIndex, int length)
-    {
-        memory.copyMemory(input, inputIndex, output, outputIndex, length);
-    }
+    private SnappyInternalUtils() {}
 
     //
     // Copied from Guava Preconditions
@@ -140,7 +50,7 @@ final class SnappyInternalUtils
         }
     }
 
-    static String badPositionIndexes(int start, int end, int size)
+    private static String badPositionIndexes(int start, int end, int size)
     {
         if (start < 0 || start > size) {
             return badPositionIndex(start, size, "start index");
@@ -152,7 +62,7 @@ final class SnappyInternalUtils
         return String.format("end index (%s) must not be less than start index (%s)", end, start);
     }
 
-    static String badPositionIndex(int index, int size, String desc)
+    private static String badPositionIndex(int index, int size, String desc)
     {
         if (index < 0) {
             return String.format("%s (%s) must not be negative", desc, index);
