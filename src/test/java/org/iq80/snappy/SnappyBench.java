@@ -53,6 +53,8 @@ public class SnappyBench
     private static final int WARM_UP_SECONDS = 45;
     private static final int SECONDS_PER_RUN = 1;
 
+    private final Snappy.CompressionContext compressionContext = new Snappy.CompressionContext();
+
     public static void main(String[] args)
     {
         System.err.printf("Running micro-benchmarks.\n");
@@ -92,7 +94,7 @@ public class SnappyBench
         for (TestData testData : TestData.values()) {
             byte[] contents = testData.getContents();
             byte[] compressed = new byte[Snappy.maxCompressedLength(contents.length)];
-            int compressedSize = Snappy.compress(contents, 0, contents.length, compressed, 0);
+            int compressedSize = Snappy.compress(compressionContext, contents, 0, contents.length, compressed, 0, compressed.length);
 
             byte[] uncompressed = new byte[contents.length];
 
@@ -116,11 +118,11 @@ public class SnappyBench
                 byte[] contents = testData.getContents();
 
                 ByteArrayOutputStream rawOut = new ByteArrayOutputStream(Snappy.maxCompressedLength(contents.length));
-                SnappyOutputStream out = new SnappyOutputStream(rawOut);
+                SnappyFramedOutputStream out = new SnappyFramedOutputStream(rawOut);
                 out.write(contents);
                 out.close();
 
-                SnappyInputStream in = new SnappyInputStream(new ByteArrayInputStream(rawOut.toByteArray()));
+                SnappyFramedInputStream in = new SnappyFramedInputStream(new ByteArrayInputStream(rawOut.toByteArray()));
                 byte[] uncompressed = ByteStreams.toByteArray(in);
 
                 if (!Arrays.equals(uncompressed, testData.getContents())) {
@@ -220,8 +222,8 @@ public class SnappyBench
                 "%-8s %8d %8.1f%% %8.1f%% %11s %11s %+6.1f%%  %s\n",
                 testData,
                 testData.size(),
-                oldDriver.getCompressionRatio(testData) * 100.0,
-                newDriver.getCompressionRatio(testData) * 100.0,
+                oldDriver.getCompressionRatio(testData, compressionContext) * 100.0,
+                newDriver.getCompressionRatio(testData, compressionContext) * 100.0,
                 oldHumanReadableSpeed,
                 newHumanReadableSpeed,
                 improvement,
@@ -232,7 +234,7 @@ public class SnappyBench
     {
         long[] firstBenchmarkRuns = new long[NUMBER_OF_RUNS];
         for (int run = 0; run < NUMBER_OF_RUNS; ++run) {
-            firstBenchmarkRuns[run] = driver.compress(testData, iterations);
+            firstBenchmarkRuns[run] = driver.compress(testData, iterations, compressionContext);
         }
         long firstMedianTimeInNanos = getMedianValue(firstBenchmarkRuns);
         return (long) (1.0 * iterations * testData.size() / nanosToSeconds(firstMedianTimeInNanos));
@@ -263,8 +265,8 @@ public class SnappyBench
                 "%-8s %8d %8.1f%% %8.1f%% %11s %11s %+6.1f%%  %s\n",
                 testData,
                 testData.size(),
-                oldDriver.getCompressionRatio(testData) * 100.0,
-                newDriver.getCompressionRatio(testData) * 100.0,
+                oldDriver.getCompressionRatio(testData, compressionContext) * 100.0,
+                newDriver.getCompressionRatio(testData, compressionContext) * 100.0,
                 oldHumanReadableSpeed,
                 newHumanReadableSpeed,
                 improvement,
@@ -275,7 +277,7 @@ public class SnappyBench
     {
         long[] jniBenchmarkRuns = new long[NUMBER_OF_RUNS];
         for (int run = 0; run < NUMBER_OF_RUNS; ++run) {
-            jniBenchmarkRuns[run] = driver.uncompress(testData, iterations);
+            jniBenchmarkRuns[run] = driver.uncompress(testData, iterations, compressionContext);
         }
         long jniMedianTimeInNanos = getMedianValue(jniBenchmarkRuns);
         return (long) (1.0 * iterations * testData.size() / nanosToSeconds(jniMedianTimeInNanos));
@@ -306,8 +308,8 @@ public class SnappyBench
                 "%-8s %8d %8.1f%% %8.1f%% %11s %11s %+6.1f%%  %s\n",
                 testData,
                 testData.size(),
-                oldDriver.getCompressionRatio(testData) * 100.0,
-                newDriver.getCompressionRatio(testData) * 100.0,
+                oldDriver.getCompressionRatio(testData, compressionContext) * 100.0,
+                newDriver.getCompressionRatio(testData, compressionContext) * 100.0,
                 oldHumanReadableSpeed,
                 newHumanReadableSpeed,
                 improvement,
@@ -318,7 +320,7 @@ public class SnappyBench
     {
         long[] jniBenchmarkRuns = new long[NUMBER_OF_RUNS];
         for (int run = 0; run < NUMBER_OF_RUNS; ++run) {
-            jniBenchmarkRuns[run] = driver.roundTrip(testData, iterations);
+            jniBenchmarkRuns[run] = driver.roundTrip(testData, iterations, compressionContext);
         }
         long jniMedianTimeInNanos = getMedianValue(jniBenchmarkRuns);
         return (long) (1.0 * iterations * testData.size() / nanosToSeconds(jniMedianTimeInNanos));
@@ -330,10 +332,10 @@ public class SnappyBench
         // the benchmark is.
         long start = System.nanoTime();
         if (compression) {
-            driver.compress(testData, CALIBRATE_ITERATIONS);
+            driver.compress(testData, CALIBRATE_ITERATIONS, compressionContext);
         }
         else {
-            driver.uncompress(testData, CALIBRATE_ITERATIONS);
+            driver.uncompress(testData, CALIBRATE_ITERATIONS, compressionContext);
         }
         long timeInNanos = System.nanoTime() - start;
 

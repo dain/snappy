@@ -17,69 +17,95 @@
  */
 package org.iq80.snappy;
 
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionInputStream;
 import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.io.compress.Compressor;
 import org.apache.hadoop.io.compress.Decompressor;
+import org.apache.hadoop.io.compress.DoNotPool;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static org.apache.hadoop.fs.CommonConfigurationKeys.IO_COMPRESSION_CODEC_SNAPPY_BUFFERSIZE_DEFAULT;
+import static org.apache.hadoop.fs.CommonConfigurationKeys.IO_COMPRESSION_CODEC_SNAPPY_BUFFERSIZE_KEY;
+
 public class HadoopSnappyCodec
-        implements CompressionCodec
+        implements Configurable, CompressionCodec
 {
+    private Configuration conf;
+
+    @Override
+    public Configuration getConf()
+    {
+        return conf;
+    }
+
+    @Override
+    public void setConf(Configuration conf)
+    {
+        this.conf = conf;
+    }
+
     @Override
     public CompressionOutputStream createOutputStream(OutputStream outputStream)
             throws IOException
     {
-        return new SnappyCompressionOutputStream(outputStream);
+        return new HadoopSnappyOutputStream(outputStream, getBufferSize());
     }
 
     @Override
     public CompressionOutputStream createOutputStream(OutputStream outputStream, Compressor compressor)
             throws IOException
     {
-        throw new UnsupportedOperationException("Snappy Compressor is not supported");
+        if (!(compressor instanceof HadoopSnappyCompressor)) {
+            throw new IllegalArgumentException("Compressor is not the Snappy decompressor");
+        }
+        return new HadoopSnappyOutputStream(outputStream, getBufferSize());
     }
 
     @Override
     public Class<? extends Compressor> getCompressorType()
     {
-        throw new UnsupportedOperationException("Snappy Compressor is not supported");
+        return HadoopSnappyCompressor.class;
     }
 
     @Override
     public Compressor createCompressor()
     {
-        throw new UnsupportedOperationException("Snappy Compressor is not supported");
+        return new HadoopSnappyCompressor();
     }
 
     @Override
     public CompressionInputStream createInputStream(InputStream inputStream)
             throws IOException
     {
-        return new SnappyCompressionInputStream(inputStream);
+        return new HadoopSnappyInputStream(inputStream);
     }
 
     @Override
-    public CompressionInputStream createInputStream(InputStream inputStream, Decompressor decompressor)
+    public CompressionInputStream createInputStream(InputStream in, Decompressor decompressor)
             throws IOException
     {
-        throw new UnsupportedOperationException("Snappy Decompressor is not supported");
+        if (!(decompressor instanceof HadoopSnappyDecompressor)) {
+            throw new IllegalArgumentException("Decompressor is not the Snappy decompressor");
+        }
+        return new HadoopSnappyInputStream(in);
     }
 
     @Override
     public Class<? extends Decompressor> getDecompressorType()
     {
-        throw new UnsupportedOperationException("Snappy Decompressor is not supported");
+        return HadoopSnappyDecompressor.class;
     }
 
     @Override
     public Decompressor createDecompressor()
     {
-        throw new UnsupportedOperationException("Snappy Decompressor is not supported");
+        return new HadoopSnappyDecompressor();
     }
 
     @Override
@@ -88,72 +114,141 @@ public class HadoopSnappyCodec
         return ".snappy";
     }
 
-    private static class SnappyCompressionOutputStream
-            extends CompressionOutputStream
+    private int getBufferSize()
     {
-        public SnappyCompressionOutputStream(OutputStream outputStream)
-                throws IOException
+        // Favor using the configured buffer size.  This is not as critical for Snappy
+        // since Snappy always writes the compressed chunk size, so we always know the
+        // correct buffer size to create.
+        int maxUncompressedLength;
+        if (conf != null) {
+            maxUncompressedLength = conf.getInt(IO_COMPRESSION_CODEC_SNAPPY_BUFFERSIZE_KEY, IO_COMPRESSION_CODEC_SNAPPY_BUFFERSIZE_DEFAULT);
+        }
+        else {
+            maxUncompressedLength = IO_COMPRESSION_CODEC_SNAPPY_BUFFERSIZE_DEFAULT;
+        }
+        return maxUncompressedLength;
+    }
+
+    /**
+     * No Hadoop code seems to actually use the compressor, so just return a dummy one so the createOutputStream method
+     * with a compressor can function.  This interface can be implemented if needed.
+     */
+    @DoNotPool
+    private static class HadoopSnappyCompressor
+            implements Compressor
+    {
+        @Override
+        public void setInput(byte[] b, int off, int len)
         {
-            super(new SnappyOutputStream(outputStream));
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
         }
 
         @Override
-        public void write(byte[] b, int off, int len)
-                throws IOException
+        public boolean needsInput()
         {
-            out.write(b, off, len);
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
+        }
+
+        @Override
+        public void setDictionary(byte[] b, int off, int len)
+        {
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
+        }
+
+        @Override
+        public long getBytesRead()
+        {
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
+        }
+
+        @Override
+        public long getBytesWritten()
+        {
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
         }
 
         @Override
         public void finish()
-                throws IOException
         {
-            out.flush();
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
         }
 
         @Override
-        public void resetState()
-                throws IOException
+        public boolean finished()
         {
-            out.flush();
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
         }
 
         @Override
-        public void write(int b)
-                throws IOException
+        public int compress(byte[] b, int off, int len)
         {
-            out.write(b);
+            throw new UnsupportedOperationException("Snappy block compressor is not supported");
         }
+
+        @Override
+        public void reset() {}
+
+        @Override
+        public void end() {}
+
+        @Override
+        public void reinit(Configuration conf) {}
     }
 
-    private static class SnappyCompressionInputStream
-            extends CompressionInputStream
+    /**
+     * No Hadoop code seems to actually use the decompressor, so just return a dummy one so the createInputStream method
+     * with a decompressor can function.  This interface can be implemented if needed.
+     */
+    @DoNotPool
+    private static class HadoopSnappyDecompressor
+            implements Decompressor
     {
-        public SnappyCompressionInputStream(InputStream inputStream)
-                throws IOException
+        @Override
+        public void setInput(byte[] b, int off, int len)
         {
-            super(new SnappyInputStream(inputStream));
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
         }
 
         @Override
-        public int read(byte[] b, int off, int len)
-                throws IOException
+        public boolean needsInput()
         {
-            return in.read(b, off, len);
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
         }
 
         @Override
-        public void resetState()
-                throws IOException
+        public void setDictionary(byte[] b, int off, int len)
         {
-            throw new UnsupportedOperationException("resetState not supported for Snappy");
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
         }
 
         @Override
-        public int read()
-                throws IOException
+        public boolean needsDictionary()
         {
-            return in.read();
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
         }
+
+        @Override
+        public boolean finished()
+        {
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
+        }
+
+        @Override
+        public int decompress(byte[] b, int off, int len)
+        {
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
+        }
+
+        @Override
+        public int getRemaining()
+        {
+            throw new UnsupportedOperationException("Snappy block decompressor is not supported");
+        }
+
+        @Override
+        public void reset() {}
+
+        @Override
+        public void end() {}
     }
 }

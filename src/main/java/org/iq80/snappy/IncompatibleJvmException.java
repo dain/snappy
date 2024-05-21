@@ -13,24 +13,11 @@
  */
 package org.iq80.snappy;
 
-public class CorruptionException
+public class IncompatibleJvmException
         extends RuntimeException
 {
-    private final long offset;
-
-    public CorruptionException(long offset)
+    public IncompatibleJvmException(String message)
     {
-        this(offset, "Malformed input");
-    }
-
-    public CorruptionException(long offset, String reason)
-    {
-        super(reason + ": offset=" + offset);
-        this.offset = offset;
-    }
-
-    public long getOffset()
-    {
-        return offset;
+        super(message);
     }
 }

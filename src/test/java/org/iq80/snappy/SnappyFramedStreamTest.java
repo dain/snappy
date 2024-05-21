@@ -18,11 +18,10 @@
 package org.iq80.snappy;
 
 import com.google.common.base.Charsets;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,13 +43,6 @@ import static org.testng.Assert.fail;
 public class SnappyFramedStreamTest
         extends AbstractSnappyStreamTest
 {
-    @BeforeTest
-    @AfterTest
-    public void resetBufferRecycler()
-    {
-        BufferRecycler.instance().clear();
-    }
-
     @Override
     protected OutputStream createOutputStream(OutputStream target)
             throws IOException
@@ -66,10 +58,57 @@ public class SnappyFramedStreamTest
         return new SnappyFramedInputStream(source, verifyCheckSums);
     }
 
-    @Override
-    protected byte[] getMarkerFrame()
+    @Test(expectedExceptions = EOFException.class, expectedExceptionsMessageRegExp = ".*stream header.*")
+    public void testEmptyStream()
+            throws Exception
     {
-        return HEADER_BYTES;
+        uncompress(new byte[0]);
+    }
+
+    @Test(expectedExceptions = IOException.class, expectedExceptionsMessageRegExp = ".*stream header.*")
+    public void testInvalidStreamHeader()
+            throws Exception
+    {
+        uncompress(new byte[] {'b', 0, 0, 'g', 'u', 's', 0});
+    }
+
+    /**
+     * Tests that the presence of the marker bytes can appear as a valid frame
+     * anywhere in stream.
+     */
+    @Test
+    public void testMarkerFrameInStream()
+            throws IOException
+    {
+        int size = 500000;
+        byte[] random = getRandom(0.5, size);
+
+        java.io.ByteArrayOutputStream out = new ByteArrayOutputStream();
+        OutputStream os = createOutputStream(out);
+
+        byte[] markerFrame = HEADER_BYTES;
+
+        for (int i = 0; i < size; ) {
+            int toWrite = Math.max((size - i) / 4, 512);
+
+            // write some data to be compressed
+            os.write(random, i, Math.min(size - i, toWrite));
+            // force the write of a frame
+            os.flush();
+
+            // write the marker frame to the underlying byte array output stream
+            out.write(markerFrame);
+
+            // this is not accurate for the final write, but at that point it
+            // does not matter
+            // as we will be exiting the for loop now
+            i += toWrite;
+        }
+
+        byte[] compressed = out.toByteArray();
+        byte[] uncompressed = uncompress(compressed);
+
+        assertEquals(random, uncompressed);
     }
 
     @Test

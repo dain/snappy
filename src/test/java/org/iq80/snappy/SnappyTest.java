@@ -22,16 +22,15 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Random;
 
 public class SnappyTest
 {
     private static final File TEST_DATA_DIR = new File("testdata");
-    private RandomGenerator randomGenerator = new RandomGenerator(0.5);
+    private final RandomGenerator randomGenerator = new RandomGenerator(0.5);
 
     @Test
-    public void testByteForByteOutputSyntheticData()
+    public void testNativeCompatibleSyntheticData()
             throws Exception
     {
         for (int i = 1; i < 65 * 1024; i++) {
@@ -39,13 +38,14 @@ public class SnappyTest
                 verifyCompression(i);
             }
             catch (Error e) {
+                e.printStackTrace();
                 Assert.fail(i + " byte block", e);
             }
         }
     }
 
     @Test
-    public void testByteForByteTestData()
+    public void testNativeCompatibleTestData()
             throws Exception
     {
         for (File testFile : getTestFiles()) {
@@ -54,10 +54,34 @@ public class SnappyTest
                 verifyCompression(data, 0, data.length);
             }
             catch (Throwable e) {
+                e.printStackTrace();
                 Assert.fail("Testdata: " + testFile.getName(), e);
-
             }
         }
+    }
+
+    @Test(expectedExceptions = CorruptionException.class, expectedExceptionsMessageRegExp = "Malformed input: offset=5")
+    public void testInvalidLiteralLength()
+    {
+        byte[] data = {
+                // Encoded uncompressed length 1024
+                -128, 8,
+                // op-code
+                (byte) 252,
+                // Trailer value Integer.MAX_VALUE
+                (byte) 0b1111_1111, (byte) 0b1111_1111, (byte) 0b1111_1111, (byte) 0b0111_1111,
+                // Some arbitrary data
+                0, 0, 0, 0, 0, 0, 0, 0
+        };
+
+        Snappy.uncompress(data, 0, data.length, new byte[1024], 0, 1024);
+    }
+
+    @Test(expectedExceptions = CorruptionException.class, expectedExceptionsMessageRegExp = "negative compressed length: offset=16")
+    public void testNegativeLength()
+    {
+        byte[] data = {(byte) 255, (byte) 255, (byte) 255, (byte) 255, 0b0000_1000};
+        Snappy.getUncompressedLength(data, 0);
     }
 
     private void verifyCompression(int size)
@@ -72,46 +96,45 @@ public class SnappyTest
     private static void verifyCompression(byte[] input, int position, int size)
             throws Exception
     {
-        byte[] nativeCompressed = new byte[org.xerial.snappy.Snappy.maxCompressedLength(size)];
         byte[] javaCompressed = new byte[Snappy.maxCompressedLength(size)];
 
+        int javaCompressedSize = Snappy.compress(
+                new Snappy.CompressionContext(),
+                input,
+                position,
+                size,
+                javaCompressed,
+                0,
+                javaCompressed.length);
+
+        // Verify Java codec decompresses Java compressed data
+        byte[] uncompressed = new byte[size];
+        int uncompressedSize = Snappy.uncompress(javaCompressed, 0, javaCompressedSize, uncompressed, 0);
+        Assert.assertEquals(uncompressedSize, size, "Size mismatch");
+        Assert.assertTrue(arraysEqual(input, position, uncompressed, 0, size), "Data mismatch");
+
+        // Verify Native codec decompresses Java compressed data
+        byte[] nativeUncompressed = new byte[size];
+        int nativeUncompressedSize = org.xerial.snappy.Snappy.uncompress(
+                javaCompressed,
+                0,
+                javaCompressedSize,
+                nativeUncompressed,
+                0);
+        Assert.assertEquals(nativeUncompressedSize, size, "Size mismatch");
+        Assert.assertTrue(arraysEqual(input, position, nativeUncompressed, 0, size), "Data mismatch");
+
+        // Verify Java codec decompresses Native compressed data
+        byte[] nativeCompressed = new byte[org.xerial.snappy.Snappy.maxCompressedLength(size)];
         int nativeCompressedSize = org.xerial.snappy.Snappy.compress(
                 input,
                 position,
                 size,
                 nativeCompressed,
                 0);
-
-        int javaCompressedSize = Snappy.compress(
-                input,
-                position,
-                size,
-                javaCompressed,
-                0);
-
-        // verify outputs are exactly the same
-        String failureMessage = "Invalid compressed output for input size " + size + " at offset " + position;
-        if (!SnappyInternalUtils.equals(javaCompressed, 0, nativeCompressed, 0, nativeCompressedSize)) {
-            if (nativeCompressedSize < 100) {
-                Assert.assertEquals(
-                        Arrays.toString(Arrays.copyOf(javaCompressed, nativeCompressedSize)),
-                        Arrays.toString(Arrays.copyOf(nativeCompressed, nativeCompressedSize)),
-                        failureMessage
-                );
-            }
-            else {
-                Assert.fail(failureMessage);
-            }
-        }
-        Assert.assertEquals(javaCompressedSize, nativeCompressedSize);
-
-        // verify the contents can be uncompressed
-        byte[] uncompressed = new byte[size];
-        Snappy.uncompress(javaCompressed, 0, javaCompressedSize, uncompressed, 0);
-
-        if (!SnappyInternalUtils.equals(uncompressed, 0, input, position, size)) {
-            Assert.fail("Invalid uncompressed output for input size " + size + " at offset " + position);
-        }
+        uncompressedSize = Snappy.uncompress(nativeCompressed, 0, nativeCompressedSize, uncompressed, 0);
+        Assert.assertEquals(uncompressedSize, size, "Size mismatch");
+        Assert.assertTrue(arraysEqual(input, position, uncompressed, 0, size), "Data mismatch");
     }
 
     public static class RandomGenerator
@@ -176,5 +199,15 @@ public class SnappyTest
         File[] testFiles = TEST_DATA_DIR.listFiles();
         Assert.assertTrue(testFiles != null && testFiles.length > 0, "No test files at " + TEST_DATA_DIR.getAbsolutePath());
         return testFiles;
+    }
+
+    private static boolean arraysEqual(byte[] left, int leftIndex, byte[] right, int rightIndex, int length)
+    {
+        for (int i = 0; i < length; i++) {
+            if (left[leftIndex + i] != right[rightIndex + i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
